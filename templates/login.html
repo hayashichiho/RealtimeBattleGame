@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <title>障害物ゲーム</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="title">障害物ゲーム</div>
+    <div class="canvas-container">
+        <form action="{{ url_for('login') }}" method="post">
+            <input type="text" class="txt" id="textBox" name="name" size="10" placeholder="プレイヤー名を入力">
+            <button type="submit" class="btn">送信</button>
+        </form>
+        <div class="rules">
+            <h2>ルール</h2>
+            <p>ルールを書く．</p>
+        </div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <noscript>JavaScriptをONにして起動して下さい</noscript>
+</body>
+
+</html>
