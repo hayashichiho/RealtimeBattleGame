@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <title>障害物ゲーム - 待機</title>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <h1>待機中...</h1>
+    <p>プレイヤー名: {{ player }}</p>
+    <p>参加者:</p>
+    <ul>
+        {% for p in players %}
+        <li>{{ p }}</li>
+        {% endfor %}
+    </ul>
+    {% if not game_started %}
+    {% if player == admin_name %}
+    <form action="{{ url_for('start_game') }}" method="post">
+        <button type="submit">ゲーム開始</button>
+    </form>
+    {% else %}
+    <p>管理者がゲームを開始するのを待っています...</p>
+    {% endif %}
+    {% else %}
+    <p>ゲームが開始されました。</p>
+    {% endif %}
+</body>
+
+</html>
