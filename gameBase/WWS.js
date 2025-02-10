@@ -505,6 +505,18 @@ function drawImgR(n, x, y, ang) {//回転
 	}
 }
 
+function drawImgLR(n, x, y) {//左右反転
+	if(img_loaded[n] == true) {
+		var w = img[n].width;
+		var h = img[n].height;
+		bg.save();
+		bg.translate(x+w/2, y+h/2);
+		bg.scale(-1, 1);
+		bg.drawImage(img[n], -w/2, -h/2);
+		bg.restore();
+	}
+}
+
 // ---------- 描画３ 文字 ----------
 function fText(str, x, y, siz, col) {
 	bg.font = int(siz) + "px bold monospace";//等幅フォントを指定
