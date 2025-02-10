@@ -1,20 +1,25 @@
 let bgY = 0;
 let bgWidth = 940;
 let bgHeight = 1200;
-let scrollSpeed = 5;
+let scrollSpeed = 8;
 
 let tmr = 0; //時間を管理する変数
 let plDir = 1; //プレイヤーの向きを管理する変数(-1:左向き, 1:右向き)
 let plAni = 0; //プレイヤーのアニメーションを管理する変数
-let MG_ANIME = [0, 0, 1, 1, 2, 2, 1, 1]; //プレイヤーのアニメーションのパターン
-let EN_ANIME = [0, 1, 0, 2]; //敵のアニメーションのパターン
+const MG_ANIME = [0, 0, 1, 1, 2, 2, 1, 1]; //プレイヤーのアニメーションのパターン
+const EN_ANIME = [0, 1, 0, 2]; //敵のアニメーションのパターン
 let personX = 450; //タップ入力を受け取った時にプレイヤーの座標を保存する変数
-let emyX = rnd(bgWidth - 72); // 敵のx座標
+let slimeX = rnd(bgWidth - 72); // スライムのx座標
+let ghostX = rnd(bgWidth - 72); // ゴーストのx座標
+let skeltonX = rnd(bgWidth - 72); // スケルトンのx座標
 let collisionRange = 50;
 let isCrying = false;
 let cryTimer = 0; // 泣く時間をカウントする
 let invincibleTimer = 0; // 無敵時間をカウントする
 let distance = 0; // 距離をカウントする
+const slime_dir = 10; // スライムを表示する番号
+const ghost_dir = 10; // ゴーストを表示する番号
+const skelton_dir = 13; // スケルトンを表示する番号
 
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8; // クールダウン時間（フレーム数）
@@ -45,7 +50,7 @@ function mainloop() {
         showDistance();
         showTime();
         drawImg(5 + int(cryTimer / 10) % 2, personX, 900); // 泣くアニメーション
-        if (cryTimer >= 90) { 
+        if (cryTimer >= 120) { 
             isCrying = false; // 泣く時間が終わったら復帰
             cryTimer = 0; // カウントリセット
         }
@@ -68,7 +73,8 @@ const changeField = () => {
     // 画像が完全に下に移動したらリセット
     if (bgY >= bgHeight) {
         bgY = 0;
-        emyX = rnd(bgWidth - 72); // 敵のx座標もこのタイミングで変更
+        slimeX = rnd(bgWidth - 72); // 敵のx座標もこのタイミングで変更
+        skeltonX = rnd(bgWidth - 72);
     }
 }
 
@@ -78,10 +84,37 @@ const notChangeField = () => {
 }
 
 const setEnemy = () => {
-    var emy_dir = 10;
+    setSlime();
+    setGhost();
+    setSkelton();
+}
+
+const setSlime = () => {
     var sx = EN_ANIME[int(tmr / 4) % 4] * 72;
-    var sy = (emy_dir - 1) * 72;
-    drawImgTS(4, sx, sy, 72, 72, emyX, bgY, 100, 100);
+    var sy = (slime_dir - 1) * 72;
+    drawImgTS(4, sx, sy, 72, 72, slimeX, bgY, 100, 100);
+}
+
+const setGhost = () => {
+    var sx = (EN_ANIME[int(tmr / 4) % 4] + 3) * 72;
+    var sy = (ghost_dir - 1) * 72;
+    if (bgY < 400) drawImgTS(4, sx, sy, 72, 72, ghostX, bgY, 100, 100);
+    else {
+        if (ghostX < personX) ghostX += 5;
+        else ghostX -= 5;
+        drawImgTS(4, sx, sy, 72, 72, ghostX, bgY, 100, 100);
+    }
+}
+
+const setSkelton = () => {
+    var sx = (EN_ANIME[int(tmr / 4) % 4] + 6) * 72;
+    var sy = (ghost_dir - 1) * 72;
+    if (bgY < 400) drawImgTS(4, sx, sy, 72, 72, skeltonX, bgY, 100, 100);
+    else {
+        if (skeltonX < personX) skeltonX += 8;
+        else skeltonX -= 8;
+        drawImgTS(4, sx, sy, 72, 72, skeltonX, bgY, 100, 100);
+    }
 }
 
 const personWalk = () => {
@@ -104,12 +137,11 @@ const personWalk = () => {
 
 const checkCollision = () => {
     let enemyY = bgY; // 敵のY座標（背景スクロールに従う）
-
     // 無敵時間中は当たり判定を無効化
     if (invincibleTimer > 0) return;
 
     // 当たり判定（X座標の差が一定以内 & Y座標が近い場合）
-    if (Math.abs(personX - emyX) < collisionRange && enemyY > 890 && enemyY < 910) {
+    if ((Math.abs(personX - slimeX) < collisionRange || Math.abs(personX - ghostX) < collisionRange || Math.abs(personX - skeltonX) < collisionRange) && enemyY > 890 && enemyY < 910) {
         console.log("Hit!"); // ここでゲームオーバー処理などを入れる
         isCrying = true;
         cryTimer = 0; // 泣くアニメーションを開始
