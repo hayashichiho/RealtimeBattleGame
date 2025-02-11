@@ -5,6 +5,7 @@ let bgWidth = 940;
 let bgHeight = 1200;
 let scrollSpeed = 12;
 
+let idx = 0;          // 全体の流れを支配する
 let tmr = 0;          // 時間管理
 let distance = 0;     // フィールド上の進行距離（絶対座標系）
 let bgOffset = 0;     // 背景描画用オフセット（distance % bgHeight）
@@ -59,8 +60,34 @@ function setup() {
 // ==================================================
 function mainloop() {
   tmr++;
+  drawImg(0, 0, 0); // 背景画像
+
+  switch (idx) {
+    case 0: // タイトル画面
+      fText("お化けから逃げろ", 470, 500, 100, "red");
+      if (tmr%40 < 20) fText("ボタンを押して開始します", 470, 700, 50, "yellow");
+      if (tapC > 0) idx = 1;
+      break;
+
+    case 1: // ゲームメイン
+      gameMain();
+      if (tmr >= MAX_FRAME) {
+        idx = 2;
+        tmr = 0;
+      }
+      break;
+
+    case 2: // ゲーム終了画面(結果を出力させる)
+      fText("ゲーム終了", 470, 400, 100, "red");
+      fText("結果発表", 470, 600, 50, "lime");
+      fText("距離: " + (distance * 0.01).toFixed(1) + "m", 470, 800, 50, "blue");
+      if (tmr === 30 * 8) idx =0;
+      break;
+  }
+}
+
+const gameMain = () => {
   tapCooldown = Math.max(0, tapCooldown - 1);
-  
   // 無敵時間カウント（衝突後）
   if (invincibleTimer > 0) invincibleTimer--;
   
@@ -113,33 +140,33 @@ const notChangeField = () => {
 // updateEnemies(): 毎フレーム、各敵の y 座標を scrollSpeed だけ増加させ、
 // 画面下に出た敵は削除、さらに distance が 120 ごとに新たな敵行（y = 0）を追加する。
 function updateEnemies() {
-    // すべての敵の y 座標を更新（下方向へ移動）
-    enemies.forEach(e => {
-      e.y += scrollSpeed;
-    });
+  // すべての敵の y 座標を更新（下方向へ移動）
+  enemies.forEach(e => {
+    e.y += scrollSpeed;
+  });
     
-    // 画面下（y >= bgHeight）に出た敵は削除
-    enemies = enemies.filter(e => e.y < bgHeight);
+  // 画面下（y >= bgHeight）に出た敵は削除
+  enemies = enemies.filter(e => e.y < bgHeight);
     
-    // 3. distance（背景進行量）は changeField() などで毎フレーム distance += scrollSpeed と更新されていると仮定
-    //    ここでは、distance が 200 ごとに新たな敵行を生成する条件とする。
-    let currentRow = Math.floor(distance / 200);
-    if (currentRow > enemyRowCounter) {
-      let stage = Math.floor(distance / 2400) + 1; // ステージは distance に応じて決定
-      // spawnEnemyRow() は、引数の y 座標（ここでは 0）で新たな敵群を生成する関数
-      let rowEnemies = spawnEnemyRow(0, stage);
-      // 新規生成された敵は、y = 0 からスタートする（画面上部に追加）
-      enemies = enemies.concat(rowEnemies);
-      enemyRowCounter = currentRow;  // spawn した行数を更新
+  // 3. distance（背景進行量）は changeField() などで毎フレーム distance += scrollSpeed と更新されていると仮定
+  //    ここでは、distance が 200 ごとに新たな敵行を生成する条件とする。
+  let currentRow = Math.floor(distance / 200);
+  if (currentRow > enemyRowCounter) {
+    let stage = Math.floor(distance / 2400) + 1; // ステージは distance に応じて決定
+    // spawnEnemyRow() は、引数の y 座標（ここでは 0）で新たな敵群を生成する関数
+    let rowEnemies = spawnEnemyRow(0, stage);
+    // 新規生成された敵は、y = 0 からスタートする（画面上部に追加）
+    enemies = enemies.concat(rowEnemies);
+    enemyRowCounter = currentRow;  // spawn した行数を更新
+  }
+    
+  // 4. 横方向の移動更新（ghost, skelton は毎フレームプレイヤーに近づく）
+  enemies.forEach(e => {
+    if (e.type === "ghost" || e.type === "skelton") {
+      if (e.x < personX) e.x += (e.type === "ghost" ? 4 : 6);
+      else e.x -= (e.type === "ghost" ? 4 : 6);
     }
-    
-    // 4. 横方向の移動更新（ghost, skelton は毎フレームプレイヤーに近づく）
-    enemies.forEach(e => {
-      if (e.type === "ghost" || e.type === "skelton") {
-        if (e.x < personX) e.x += (e.type === "ghost" ? 4 : 6);
-        else e.x -= (e.type === "ghost" ? 4 : 6);
-      }
-    });
+  });
 }
 
 // spawnEnemyRow(rowY, stage)
@@ -238,24 +265,24 @@ function spawnEnemyRow(rowY, stage) {
 // ==================================================
 // setEnemy(): 各敵をキャンバスに描画（敵の y 座標はすでに 0～bgHeight の範囲にあるとする）
 const setEnemy = () => {
-    enemies.forEach(e => {
-      // 画面内の敵のみ描画（0 ≤ e.y < bgHeight）
-      if (e.y >= 0 && e.y < bgHeight) {
-        if (e.type === "slime") {
-          let sx = EN_ANIME[int(tmr / 4) % 4] * 72;
-          let sy = (slime_dir - 1) * 72;
-          drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
-        } else if (e.type === "ghost") {
-          let sx = (EN_ANIME[int(tmr / 4) % 4] + 3) * 72;
-          let sy = (ghost_dir - 1) * 72;
-          drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
-        } else if (e.type === "skelton") {
-          let sx = (EN_ANIME[int(tmr / 4) % 4] + 6) * 72;
-          let sy = (skelton_dir - 1) * 72;
-          drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
-        }
+  enemies.forEach(e => {
+    // 画面内の敵のみ描画（0 ≤ e.y < bgHeight）
+    if (e.y >= 0 && e.y < bgHeight) {
+      if (e.type === "slime") {
+        let sx = EN_ANIME[int(tmr / 4) % 4] * 72;
+        let sy = (slime_dir - 1) * 72;
+        drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
+      } else if (e.type === "ghost") {
+        let sx = (EN_ANIME[int(tmr / 4) % 4] + 3) * 72;
+        let sy = (ghost_dir - 1) * 72;
+        drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
+      } else if (e.type === "skelton") {
+        let sx = (EN_ANIME[int(tmr / 4) % 4] + 6) * 72;
+        let sy = (skelton_dir - 1) * 72;
+        drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
       }
-    });
+    }
+  });
 }
 
 // ==================================================
