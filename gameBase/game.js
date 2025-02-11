@@ -3,7 +3,7 @@
 // ==================================================
 let bgWidth = 940;
 let bgHeight = 1200;
-let scrollSpeed = 8;
+let scrollSpeed = 12;
 
 let tmr = 0;          // 時間管理
 let distance = 0;     // フィールド上の進行距離（絶対座標系）
@@ -37,16 +37,6 @@ const skelton_dir = 13;
 // 敵は配列で管理。各敵は { type:"slime"/"ghost"/"skelton", x:数値, y:絶対座標 } とする。
 let enemies = [];
 
-// field上に表示すべき敵数（全体の密度）は、ステージによって決まる（例）
-function getDesiredEnemyCount(stage) {
-  if (stage === 1) return 5;
-  if (stage === 2) return 5;
-  if (stage === 3) return 8;
-  if (stage === 4) return 9;
-  if (stage === 5) return 9;
-  return 9 + (stage - 5) * 3;
-}
-
 // ==================================================
 // 起動時の処理
 // ==================================================
@@ -75,16 +65,13 @@ function mainloop() {
   if (invincibleTimer > 0) invincibleTimer--;
   
   // 常に背景とUIは描画する
-  changeField();
-  showTime();
-  setEnemy();
+  // updateEnemies();
   
   if (isCrying) {
     cryTimer++;
     // 背景は固定（スクロールさせず）して、敵・UIは更新
     notChangeField();
-    setEnemy();         // 敵描画（※位置は更新済み）
-    showDistance();
+    setEnemy();         // 敵描画（※位置は更新済み）    
     // 泣くアニメーション（プレイヤー画像）
     drawImg(5 + int(cryTimer / 10) % 2, personX, playerY);
     if (cryTimer >= 120) {
@@ -92,13 +79,14 @@ function mainloop() {
       cryTimer = 0;
     }
   } else {
+    updateEnemies();
+    changeField();
+    setEnemy(); 
     personWalk();
     checkCollision();
-    showDistance();
   }
-  
-  // 各フレームで、画面下（＝表示領域の下部）に新たな敵行を追加する
-  updateEnemies();
+  showDistance();
+  showTime();
 }
 
 // ==================================================
@@ -125,18 +113,17 @@ const notChangeField = () => {
 // updateEnemies(): 毎フレーム、各敵の y 座標を scrollSpeed だけ増加させ、
 // 画面下に出た敵は削除、さらに distance が 120 ごとに新たな敵行（y = 0）を追加する。
 function updateEnemies() {
-    // 1. すべての敵の y 座標を更新（下方向へ移動）
+    // すべての敵の y 座標を更新（下方向へ移動）
     enemies.forEach(e => {
       e.y += scrollSpeed;
     });
     
-    // 2. 画面下（y >= bgHeight）に出た敵は削除
+    // 画面下（y >= bgHeight）に出た敵は削除
     enemies = enemies.filter(e => e.y < bgHeight);
     
     // 3. distance（背景進行量）は changeField() などで毎フレーム distance += scrollSpeed と更新されていると仮定
-    //    ここでは、distance が 120 ごとに新たな敵行を生成する条件とする。
-    //    例: 現在の spawn 行数より、Math.floor(distance / 120) が大きい場合、新行を spawn
-    let currentRow = Math.floor(distance / 120);
+    //    ここでは、distance が 200 ごとに新たな敵行を生成する条件とする。
+    let currentRow = Math.floor(distance / 200);
     if (currentRow > enemyRowCounter) {
       let stage = Math.floor(distance / 2400) + 1; // ステージは distance に応じて決定
       // spawnEnemyRow() は、引数の y 座標（ここでは 0）で新たな敵群を生成する関数
@@ -149,8 +136,8 @@ function updateEnemies() {
     // 4. 横方向の移動更新（ghost, skelton は毎フレームプレイヤーに近づく）
     enemies.forEach(e => {
       if (e.type === "ghost" || e.type === "skelton") {
-        if (e.x < personX) e.x += (e.type === "ghost" ? 5 : 8);
-        else e.x -= (e.type === "ghost" ? 5 : 8);
+        if (e.x < personX) e.x += (e.type === "ghost" ? 4 : 6);
+        else e.x -= (e.type === "ghost" ? 4 : 6);
       }
     });
 }
@@ -161,29 +148,87 @@ function updateEnemies() {
 // 戻り値: その行に出現させる敵の配列（1行に1体または複数体）
 function spawnEnemyRow(rowY, stage) {
   let rowEnemies = [];
-  // 例として、各ステージで以下のような行ごとの出現を行う：
   if (stage === 1) {
-    // stage1：1行につき1体（すべてスライム）
-    rowEnemies.push({ type: "slime", x: rnd(bgWidth - 72), y: rowY });
+    if (rnd(100) < 70) { // 70%でスライム
+      rowEnemies.push({ type: "slime", x: rnd(bgWidth - 72), y: rowY });
+    }
   } else if (stage === 2) {
-    // stage2：1行につき1体（70%スライム、30%ゴースト）
-    let type = (rnd(100) < 70) ? "slime" : "ghost";
-    rowEnemies.push({ type: type, x: rnd(bgWidth - 72), y: rowY });
+    if (rnd(100) < 70) { // 70%で敵を出現させて，その中で70%でスライム
+      let type1 = (rnd(100) < 70) ? "slime" : "ghost";
+      rowEnemies.push({ type: type1, x: rnd(bgWidth - 72), y: rowY });
+    }
   } else if (stage === 3) {
-    // stage3：1行につき2体（左右に分散、各50%スライム/ゴースト）
-    rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth/2 - 72), y: rowY });
-    rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth/2, bgWidth - 72), y: rowY });
-  } else if (stage === 4) {
-    // stage4：1行につき2体（うち片方をスケルトンにする可能性あり）
-    let t1 = (rnd(100) < 50) ? "skelton" : (rnd(100) < 50 ? "slime" : "ghost");
-    let t2 = (rnd(100) < 50) ? "skelton" : (rnd(100) < 50 ? "slime" : "ghost");
-    rowEnemies.push({ type: t1, x: rnd(bgWidth/2 - 72), y: rowY });
-    rowEnemies.push({ type: t2, x: rnd(bgWidth/2, bgWidth - 72), y: rowY });
-  } else if (stage >= 5) {
-    // stage5以降：すべてスケルトン
-    // ここでは1行につき2体を出現させる例
-    rowEnemies.push({ type: "skelton", x: rnd(bgWidth/2 - 72), y: rowY });
-    rowEnemies.push({ type: "skelton", x: rnd(bgWidth/2, bgWidth - 72), y: rowY });
+    let pro3 = rnd(100); // 20%で2体の敵を出現させる，20%でスライム，20%でゴースト
+    if(pro3 < 20) {
+      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro3 < 40) {
+      rowEnemies.push({ type: "slime", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro3 < 60) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage === 4) { // このタイミングですべてをゴーストにする
+    let pro4 = rnd(100);
+    if (pro4 < 20) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro4 < 60) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage === 5) { // このタイミングで一人の敵に50%でスケルトンを増やす
+    let pro5 = rnd(100);
+    if (pro5 < 20) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro5 < 50) {
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage === 6) { // このタイミングでスケルトンを増やす
+    let pro6 = rnd(100);
+    if (pro6 < 20) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro6 < 40) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro6 < 60) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage === 7) {
+    let pro7 = rnd(100);
+    if (pro7 < 20) {
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro7 < 40) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro7 < 60) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage === 8) {
+    let pro8 = rnd(100);
+    if (pro8 < 20) {
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro8 < 40) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro8 < 60) {
+      rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else if (stage < 11) {
+    let pro9 = rnd(100);
+    if (pro9 < 30) {
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro9 < 70) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    }
+  } else {
+    let pro10 = rnd(100);
+    if (pro10 < 30) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    } else if (pro10 < 70) {
+      rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
+    }
   }
   return rowEnemies;
 }
@@ -239,11 +284,8 @@ const personWalk = () => {
 const checkCollision = () => {
   if (invincibleTimer > 0) return;
   for (let e of enemies) {
-    // 敵のキャンバス上のY座標＝ e.y - distance
-    let enemyScreenY = e.y - distance;
     // プレイヤーのYは固定 (playerY ≒900)
-    if (enemyScreenY >= 890 && enemyScreenY < 910 &&
-        Math.abs(personX - e.x) < collisionRange) {
+    if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
       console.log("Hit!");
       isCrying = true;
       cryTimer = 0;
