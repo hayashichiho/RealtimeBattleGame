@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-    <title>障害物ゲーム</title>
+    <title>ドリブルゲーム</title>
     <meta charset="utf-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -11,7 +11,7 @@
     <div class="title">障害物ゲーム</div>
     <div class="canvas-container">
         <form action="{{ url_for('login') }}" method="post">
-            <input type="text" class="txt" id="textBox" name="name" size="10" placeholder="プレイヤー名を入力">
+            <input type="text" class="txt" id="textBox" name="name" size="35" placeholder="プレイヤー名を入力">
             <button type="submit" class="btn">送信</button>
         </form>
         <div class="rules">
