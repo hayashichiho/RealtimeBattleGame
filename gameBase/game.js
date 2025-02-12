@@ -17,17 +17,21 @@ const EN_ANIME = [0, 1, 0, 2];              // 敵アニメーションパター
 
 let personX = 450;    // プレイヤーX座標（左右移動）
 const playerY = 900;  // プレイヤーの固定Y座標
+let stage = 0;
 
 let collisionRange = 50;
 let enemyRowCounter = 0;  // これまでに spawn した「敵行」の個数
 
 let isCrying = false;
+let isFalling = false;
+let fallDir;
 let cryTimer = 0;         // 泣く時間カウント
+let fallTimer = 0;        // 落ちる時間カウント
 let invincibleTimer = 0;  // 衝突直後の無敵時間
 
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
-const INVINCIBLE_TIME = 20;   // 無敵フレーム数
+const INVINCIBLE_TIME = 50;   // 無敵フレーム数
 const MAX_FRAME = 30 * 60 * 2; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）
@@ -50,7 +54,7 @@ function setup() {
   loadImg(4, "image/enemy1.png");  // 敵用スプライトシート
   loadImg(5, "image/mgirl4.png");  // プレイヤー泣き画像
   loadImg(6, "image/mgirl5.png");
-  
+
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();
 }
@@ -66,7 +70,10 @@ function mainloop() {
     case 0: // タイトル画面
       fText("お化けから逃げろ", 470, 500, 100, "red");
       if (tmr%40 < 20) fText("ボタンを押して開始します", 470, 700, 50, "yellow");
-      if (tapC > 0) idx = 1;
+      if (tapC > 0) {
+        idx = 1;
+        tmr = 0;
+      }
       break;
 
     case 1: // ゲームメイン
@@ -81,18 +88,18 @@ function mainloop() {
       fText("ゲーム終了", 470, 400, 100, "red");
       fText("結果発表", 470, 600, 50, "lime");
       fText("距離: " + (distance * 0.01).toFixed(1) + "m", 470, 800, 50, "blue");
-      if (tmr === 30 * 8) idx =0;
+      if (tmr === 30 * 8) {
+        idx = 0;
+        resetGame();
+      }
       break;
   }
 }
 
 const gameMain = () => {
   tapCooldown = Math.max(0, tapCooldown - 1);
-  // 無敵時間カウント（衝突後）
+  // 無敵時間カウント（衝突後または落下後）
   if (invincibleTimer > 0) invincibleTimer--;
-  
-  // 常に背景とUIは描画する
-  // updateEnemies();
   
   if (isCrying) {
     cryTimer++;
@@ -105,12 +112,36 @@ const gameMain = () => {
       isCrying = false;
       cryTimer = 0;
     }
+  } else if (isFalling) {
+    fallTimer++;
+    // 背景は固定（スクロールさせず）して、敵・UIは更新
+    notChangeField();
+    setEnemy();         // 敵描画（※位置は更新済み）    
+    
+    // 初期の幅と高さを設定
+    let initialWidth = 144;
+    let initialHeight = 72;
+    
+    // 毎フレーム fallTimer に応じて幅と高さを減らす
+    let fallWidth = Math.max(initialWidth - fallTimer * 2, 0);
+    let fallHeight = Math.max(initialHeight - fallTimer, 0);
+    if(fallDir == 1){
+      drawImgS(5 + int(fallTimer / 10) % 2, personX - (144/120) * fallTimer - 30, playerY, fallWidth, fallHeight);
+    } if(fallDir = -1){
+      drawImgS(5 + int(fallTimer / 10) % 2, personX + (144/120) * fallTimer - 60, playerY, fallWidth, fallHeight);
+    }
+    if (fallTimer >= 120) {
+      isFalling = false;
+      fallTimer = 0;
+      personX = 450;
+    }
   } else {
     updateEnemies();
     changeField();
     setEnemy(); 
     personWalk();
     checkCollision();
+    checkFalling();
   }
   showDistance();
   showTime();
@@ -260,6 +291,21 @@ function spawnEnemyRow(rowY, stage) {
   return rowEnemies;
 }
 
+// ゲーム状態を初期化する関数
+function resetGame() {
+  enemies = [];            // 前回の敵をすべて削除
+  enemyRowCounter = 0;     // 敵行カウンタをリセット
+  distance = 0;            // 進行距離をリセット
+  bgOffset = 0;            // 背景オフセットをリセット
+  tapCooldown = 0;
+  invincibleTimer = 0;
+  personX = 450;           // プレイヤーの位置も初期位置に戻す
+  plAni = 0;
+  stage = 0;
+  isCrying = false;
+  isFalling = false;
+}
+
 // ==================================================
 // 敵描画（表示領域内の敵を、フィールド座標→キャンバス座標に変換して描画）
 // ==================================================
@@ -313,12 +359,21 @@ const checkCollision = () => {
   for (let e of enemies) {
     // プレイヤーのYは固定 (playerY ≒900)
     if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
-      console.log("Hit!");
       isCrying = true;
       cryTimer = 0;
       invincibleTimer = INVINCIBLE_TIME;
       break;
     }
+  }
+}
+
+const checkFalling = () => {
+  if (invincibleTimer > 0) return;
+  if (personX < 30 || personX > 850) {
+    fallDir = personX < 30 ? 1 : -1; // 左端に落ちたら1，右端に落ちたら-1
+    isFalling = true;
+    fallTimer = 0;
+    invincibleTimer = INVINCIBLE_TIME;
   }
 }
 
