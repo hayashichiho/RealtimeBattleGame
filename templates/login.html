@@ -19,6 +19,13 @@
             <p>ルールを書く．</p>
         </div>
         <canvas id="canvas"></canvas>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <script>
+            alert("{{ messages[0] }}");
+        </script>
+        {% endif %}
+        {% endwith %}
     </div>
 
     <noscript>JavaScriptをONにして起動して下さい</noscript>

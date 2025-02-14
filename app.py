@@ -1,5 +1,6 @@
 from flask import (
     Flask,
+    flash,
     g,
     redirect,
     render_template,
@@ -9,6 +10,7 @@ from flask import (
 )
 
 app = Flask(__name__)  # インスタンス化
+app.secret_key = "your_secret_key"  # フラッシュメッセージのためのシークレットキー
 
 players = []  # プレイヤーの名前を格納
 game_started = False  # ゲームが開始されたかどうかを格納
@@ -32,7 +34,9 @@ def login():
     if player_name and player_name not in g.players:
         g.players.append(player_name)
         return redirect(url_for("wait", player=player_name))
-    return redirect(url_for("index"))
+    else:
+        flash("その名前は既に使用されています。別の名前を入力してください。")
+        return redirect(url_for("index"))
 
 
 @app.route("/wait")  # 待機画面にアクセスした時に実行される関数
@@ -70,4 +74,4 @@ def serve_game_files(filename):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)  # デバッグモードでアプリケーションを起動

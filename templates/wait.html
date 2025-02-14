@@ -13,25 +13,27 @@
         <h2>プレイヤー名: {{ player }}</h2>
         <div class="rules">
             <h3>参加者:</h3>
-
-            {% for p in players %}
-            <li>{{p}}</li>
-            {% endfor %}
+            <div class="player-list">
+                {% for p in players %}
+                <div class="player-name">{{ p }}</div>
+                {% endfor %}
+            </div>
 
             {% if not game_started %}
             {% if player == admin_name %}
-
+            <!-- 管理者用のゲーム開始ボタン -->
             <form action="{{ url_for('start_game') }}" method="post">
                 <button type="submit">ゲーム開始</button>
             </form>
             {% else %}
+            <!-- 参加者用の待機メッセージ -->
             <p>管理者がゲームを開始するのを待っています...</p>
             {% endif %}
             {% else %}
+            <!-- ゲーム開始後のメッセージ -->
             <p>ゲームが開始されました。</p>
             {% endif %}
         </div>
-        <canvas id="canvas"></canvas>
     </div>
 </body>
 

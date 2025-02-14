@@ -55,15 +55,31 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
 }
 
 .rules {
     background: #ffffff;
-    border: 1px solid #0c9a34;
-    padding: 20px;
+    border: 1px solid #012406;
+    padding: 10px;
     width: 80%;
     margin: 20px auto;
     box-sizing: border-box;
+    max-width: 600px;
+}
+
+.player-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.player-name {
+    margin: 5px;
+    padding: 5px 10px;
+    border: none;
+    background-color: transparent;
+    font-size: 1.2em;
 }
 
 canvas {
@@ -71,6 +87,12 @@ canvas {
     height: auto;
     max-width: 960px;
     max-height: 1200px;
+}
+
+.error-messages {
+    color: red;
+    margin-top: 10px;
+    font-weight: bold;
 }
 
 @media (max-width: 600px) {
