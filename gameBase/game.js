@@ -53,7 +53,7 @@ function setup() {
   loadImg(3, "image/mgirl3.png");
   loadImg(4, "image/enemy1.png");  // 敵用スプライトシート
   loadImg(5, "image/mgirl4.png");  // プレイヤー泣き画像
-  loadImg(6, "image/mgirl5.png");
+  loadImg(6, "gameBase/image/mgirl5.png");
 
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();
@@ -69,7 +69,7 @@ function mainloop() {
   switch (idx) {
     case 0: // タイトル画面
       fText("お化けから逃げろ", 470, 500, 100, "red");
-      if (tmr%40 < 20) fText("ボタンを押して開始します", 470, 700, 50, "yellow");
+      if (tmr % 40 < 20) fText("ボタンを押して開始します", 470, 700, 50, "yellow");
       if (tapC > 0) {
         idx = 1;
         tmr = 0;
@@ -79,8 +79,7 @@ function mainloop() {
     case 1: // ゲームメイン
       gameMain();
       if (tmr >= MAX_FRAME) {
-        idx = 2;
-        tmr = 0;
+        // ゲーム終了処理
       }
       break;
 
@@ -100,12 +99,12 @@ const gameMain = () => {
   tapCooldown = Math.max(0, tapCooldown - 1);
   // 無敵時間カウント（衝突後または落下後）
   if (invincibleTimer > 0) invincibleTimer--;
-  
+
   if (isCrying) {
     cryTimer++;
     // 背景は固定（スクロールさせず）して、敵・UIは更新
     notChangeField();
-    setEnemy();         // 敵描画（※位置は更新済み）    
+    setEnemy();         // 敵描画（※位置は更新済み）
     // 泣くアニメーション（プレイヤー画像）
     drawImg(5 + int(cryTimer / 10) % 2, personX, playerY);
     if (cryTimer >= 120) {
@@ -116,19 +115,19 @@ const gameMain = () => {
     fallTimer++;
     // 背景は固定（スクロールさせず）して、敵・UIは更新
     notChangeField();
-    setEnemy();         // 敵描画（※位置は更新済み）    
-    
+    setEnemy();         // 敵描画（※位置は更新済み）
+
     // 初期の幅と高さを設定
     let initialWidth = 144;
     let initialHeight = 72;
-    
+
     // 毎フレーム fallTimer に応じて幅と高さを減らす
     let fallWidth = Math.max(initialWidth - fallTimer * 2, 0);
     let fallHeight = Math.max(initialHeight - fallTimer, 0);
-    if(fallDir == 1){
-      drawImgS(5 + int(fallTimer / 10) % 2, personX - (144/120) * fallTimer - 30, playerY, fallWidth, fallHeight);
-    } if(fallDir = -1){
-      drawImgS(5 + int(fallTimer / 10) % 2, personX + (144/120) * fallTimer - 60, playerY, fallWidth, fallHeight);
+    if (fallDir == 1) {
+      drawImgS(5 + int(fallTimer / 10) % 2, personX - (144 / 120) * fallTimer - 30, playerY, fallWidth, fallHeight);
+    } if (fallDir = -1) {
+      drawImgS(5 + int(fallTimer / 10) % 2, personX + (144 / 120) * fallTimer - 60, playerY, fallWidth, fallHeight);
     }
     if (fallTimer >= 120) {
       isFalling = false;
@@ -138,7 +137,7 @@ const gameMain = () => {
   } else {
     updateEnemies();
     changeField();
-    setEnemy(); 
+    setEnemy();
     personWalk();
     checkCollision();
     checkFalling();
@@ -175,10 +174,10 @@ function updateEnemies() {
   enemies.forEach(e => {
     e.y += scrollSpeed;
   });
-    
+
   // 画面下（y >= bgHeight）に出た敵は削除
   enemies = enemies.filter(e => e.y < bgHeight);
-    
+
   // 3. distance（背景進行量）は changeField() などで毎フレーム distance += scrollSpeed と更新されていると仮定
   //    ここでは、distance が 200 ごとに新たな敵行を生成する条件とする。
   let currentRow = Math.floor(distance / 200);
@@ -190,7 +189,7 @@ function updateEnemies() {
     enemies = enemies.concat(rowEnemies);
     enemyRowCounter = currentRow;  // spawn した行数を更新
   }
-    
+
   // 4. 横方向の移動更新（ghost, skelton は毎フレームプレイヤーに近づく）
   enemies.forEach(e => {
     if (e.type === "ghost" || e.type === "skelton") {
@@ -201,7 +200,7 @@ function updateEnemies() {
 }
 
 // spawnEnemyRow(rowY, stage)
-// rowY: 敵行の絶対y座標（field座標）  
+// rowY: 敵行の絶対y座標（field座標）
 // stage: 現在のステージに応じた出現パターンを決定する
 // 戻り値: その行に出現させる敵の配列（1行に1体または複数体）
 function spawnEnemyRow(rowY, stage) {
@@ -217,7 +216,7 @@ function spawnEnemyRow(rowY, stage) {
     }
   } else if (stage === 3) {
     let pro3 = rnd(100); // 20%で2体の敵を出現させる，20%でスライム，20%でゴースト
-    if(pro3 < 20) {
+    if (pro3 < 20) {
       rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
       rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
     } else if (pro3 < 40) {
