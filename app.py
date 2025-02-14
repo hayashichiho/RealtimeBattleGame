@@ -1,77 +1,92 @@
 from flask import (
     Flask,
     flash,
-    g,
+    jsonify,
     redirect,
     render_template,
     request,
     send_from_directory,
     url_for,
 )
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)  # インスタンス化
-app.secret_key = "your_secret_key"  # フラッシュメッセージのためのシークレットキー
-
-players = []  # プレイヤーの名前を格納
-game_started = False  # ゲームが開始されたかどうかを格納
-admin_name = "hayashi"  # 管理者の名前を設定
-
-
-@app.before_request  # リクエストが来た時に実行される関数
-def before_request():
-    g.players = players
-    g.game_started = game_started
+app = Flask(__name__)
+app.secret_key = "your_secret_key"  # セッションを使用するために必要
+CORS(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///players.db"
+db = SQLAlchemy(app)
 
 
-@app.route("/")  # ルートディレクトリにアクセスした時に実行される関数
+class Player(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+
+@app.route("/")
 def index():
     return render_template("login.html")
 
 
-@app.route("/login", methods=["POST"])  # ログインボタンを押した時に実行される関数
+@app.route("/login", methods=["POST"])
 def login():
     player_name = request.form["name"]
-    if player_name and player_name not in g.players:
-        g.players.append(player_name)
-        return redirect(url_for("wait", player=player_name))
-    else:
-        flash("その名前は既に使用されています。別の名前を入力してください。")
+    if not player_name:
+        flash("プレイヤー名を入力してください")
         return redirect(url_for("index"))
+    return redirect(url_for("wait", player=player_name))
 
 
-@app.route("/wait")  # 待機画面にアクセスした時に実行される関数
+@app.route("/wait")
 def wait():
-    player_name = request.args.get("player")
+    player = request.args.get("player")
+    players = [p.name for p in Player.query.all()]
+    game_started = False  # ゲームが開始されたかどうかのフラグ
+    admin_name = "admin"  # 管理者の名前（例）
     return render_template(
         "wait.html",
-        player=player_name,
-        players=g.players,
-        game_started=g.game_started,
+        player=player,
+        players=players,
+        game_started=game_started,
         admin_name=admin_name,
     )
 
 
-@app.route(
-    "/start_game", methods=["POST"]
-)  # ゲームスタートボタンを押した時に実行される関数
+@app.route("/start_game", methods=["POST"])
 def start_game():
-    global game_started
-    game_started = True
-    g.game_started = game_started
     return redirect(url_for("game"))
 
 
-@app.route("/game")  # ゲーム画面にアクセスした時に実行される関数
+@app.route("/game")
 def game():
-    return send_from_directory(
-        "gameBase", "index.html"
-    )  # gameBaseディレクトリのindex.htmlを返す
+    return render_template("gameBase/index.html")
 
 
-@app.route("/gameBase/<path:filename>")  # gameBaseディレクトリのファイルを返す
-def serve_game_files(filename):
-    return send_from_directory("gameBase", filename)
+@app.route("/static/js/<path:filename>")
+def serve_js(filename):
+    return send_from_directory("static/js", filename)
+
+
+@app.route("/static/images/<path:filename>")
+def serve_images(filename):
+    return send_from_directory("static/images", filename)
+
+
+@app.route("/api/players", methods=["GET"])
+def get_players():
+    players = Player.query.all()
+    return jsonify([{"id": player.id, "name": player.name} for player in players])
+
+
+@app.route("/api/players", methods=["POST"])
+def add_player():
+    new_player = request.get_json()
+    player = Player(name=new_player["name"])
+    db.session.add(player)
+    db.session.commit()
+    return jsonify({"id": player.id, "name": player.name}), 201
 
 
 if __name__ == "__main__":
-    app.run(debug=True)  # デバッグモードでアプリケーションを起動
+    db.create_all()
+    app.run(host="0.0.0.0", port=5000)
