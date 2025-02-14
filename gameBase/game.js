@@ -47,12 +47,12 @@ let enemies = [];
 // ==================================================
 function setup() {
   canvasSize(bgWidth, bgHeight);
-  loadImg(0, "image/grass.jpg");
-  loadImg(1, "image/mgirl1.png"); // プレイヤー歩行画像
-  loadImg(2, "image/mgirl2.png");
-  loadImg(3, "image/mgirl3.png");
-  loadImg(4, "image/enemy1.png");  // 敵用スプライトシート
-  loadImg(5, "image/mgirl4.png");  // プレイヤー泣き画像
+  loadImg(0, "gameBase/image/grass.jpg");
+  loadImg(1, "gameBase/image/mgirl1.png"); // プレイヤー歩行画像
+  loadImg(2, "gameBase/image/mgirl2.png");
+  loadImg(3, "gameBase/image/mgirl3.png");
+  loadImg(4, "gameBase/image/enemy1.png");  // 敵用スプライトシート
+  loadImg(5, "gameBase/image/mgirl4.png");  // プレイヤー泣き画像
   loadImg(6, "gameBase/image/mgirl5.png");
 
   // 最初のタイミングで画面下部に必要な敵行を生成
@@ -79,7 +79,8 @@ function mainloop() {
     case 1: // ゲームメイン
       gameMain();
       if (tmr >= MAX_FRAME) {
-        // ゲーム終了処理
+        idx = 2;
+        tmr = 0;
       }
       break;
 
