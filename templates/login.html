@@ -18,14 +18,18 @@
             <h2>ルール</h2>
             <p>ルールを書く．</p>
         </div>
-        <canvas id="canvas"></canvas>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
+
         <script>
-            alert("{{ messages[0] }}");
+            <!--プレイヤー名が入力されているかチェック-->
+            document.querySelector('.btn').addEventListener('click', function (e) {
+                var textBox = document.querySelector('.txt');
+                if (textBox.value === '') {
+                    alert('プレイヤー名を入力してください');
+                    e.preventDefault();
+                }
+            });
         </script>
-        {% endif %}
-        {% endwith %}
+
     </div>
 
     <noscript>JavaScriptをONにして起動して下さい</noscript>
