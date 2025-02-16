@@ -43,17 +43,18 @@ const skelton_dir = 13;
 let enemies = [];
 
 // ==================================================
-// 起動時の処理
+// 起動時の処
+
 // ==================================================
 function setup() {
   canvasSize(bgWidth, bgHeight);
-  loadImg(0, "gameBase/image/grass.jpg");
-  loadImg(1, "gameBase/image/mgirl1.png"); // プレイヤー歩行画像
-  loadImg(2, "gameBase/image/mgirl2.png");
-  loadImg(3, "gameBase/image/mgirl3.png");
-  loadImg(4, "gameBase/image/enemy1.png");  // 敵用スプライトシート
-  loadImg(5, "gameBase/image/mgirl4.png");  // プレイヤー泣き画像
-  loadImg(6, "gameBase/image/mgirl5.png");
+  loadImg(0, "static/images/grass.jpg");
+  loadImg(1, "static/images/mgirl1.png"); // プレイヤー歩行画像
+  loadImg(2, "static/images/mgirl2.png");
+  loadImg(3, "static/images/mgirl3.png");
+  loadImg(4, "static/images/enemy1.png");  // 敵用スプライトシート
+  loadImg(5, "static/images/mgirl4.png");  // プレイヤー泣き画像
+  loadImg(6, "static/images/mgirl5.png");
 
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();

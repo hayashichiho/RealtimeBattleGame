@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ランキング</title>
+</head>
+
+<body>
+    <h1>ランキング</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>順位</th>
+                <th>プレイヤー名</th>
+                <th>距離 (m)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in players %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.distance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
