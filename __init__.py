@@ -5,6 +5,10 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///players.db"  # SQLiteのデータベースファイルを指定
 )
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = (
+    False  # トラックモディフィケーションを無効化
+)
+
 db = SQLAlchemy(app)  # SQLAlchemyを初期化
 
 from . import models, views

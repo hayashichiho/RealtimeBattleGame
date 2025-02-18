@@ -8,7 +8,7 @@ from flask import (
 )
 
 from . import app, db
-from .models import Player
+from .models import Player, generate_unique_player_id
 
 
 @app.route("/")  # ルートURLにアクセスがあった場合の処理
@@ -21,20 +21,26 @@ def index():  # ログイン画面を表示
 )  # ログインフォームからPOSTリクエストがあった場合の処理
 def login():
     player_name = request.form["name"]
+    player_id = generate_unique_player_id()
+    player = Player(player_id=player_id, name=player_name)
+    db.session.add(player)
+    db.session.commit()
     return redirect(
-        url_for("wait", player=player_name)
-    )  # プレイヤー名をクエリパラメータとして渡す
+        url_for("wait", player_id=player_id, player_name=player_name)
+    )  # プレイヤーIDと名前をクエリパラメータとして渡す
 
 
 @app.route("/wait")  # 待機画面を表示
 def wait():
-    player = request.args.get("player")
+    player_id = request.args.get("player_id")
+    player_name = request.args.get("player_name")
     players = [p.name for p in Player.query.all()]
     game_started = False  # ゲームが開始されたかどうかのフラグ
     admin_name = "admin"  # 管理者の名前
     return render_template(
         "wait.html",
-        player=player,
+        player_id=player_id,
+        player_name=player_name,
         players=players,
         game_started=game_started,
         admin_name=admin_name,
@@ -43,12 +49,19 @@ def wait():
 
 @app.route("/start_game", methods=["POST"])  # ゲーム開始ボタンが押された場合の処理
 def start_game():
-    return redirect(url_for("game"))
+    player_id = request.form["player_id"]
+    return redirect(url_for("game", player_id=player_id))
 
 
 @app.route("/game")  # ゲーム画面を表示
 def game():
-    return render_template("gameBase/index.html")
+    player_id = request.args.get("player_id")
+    return render_template("gameBase/index.html", player_id=player_id)
+
+
+@app.route("/ranking")  # ランキング画面を表示
+def ranking():
+    return render_template("ranking.html")
 
 
 @app.route("/static/js/<path:filename>")  # 静的ファイルのJSを提供
@@ -61,16 +74,78 @@ def serve_images(filename):
     return send_from_directory("static/images", filename)
 
 
+@app.route("/api/register", methods=["POST"])  # プレイヤーを登録
+def register_player():
+    data = request.get_json()
+    player_id = generate_unique_player_id()
+    player = Player(player_id=player_id, name=data["name"])
+    db.session.add(player)
+    db.session.commit()
+    return jsonify(
+        {
+            "player_id": player.player_id,
+            "name": player.name,
+            "distance": player.distance,
+            "is_active": player.is_active,
+        }
+    ), 201
+
+
 @app.route("/api/players", methods=["GET"])  # プレイヤー一覧を取得
 def get_players():
     players = Player.query.all()
-    return jsonify([{"id": player.id, "name": player.name} for player in players])
+    return jsonify(
+        [
+            {
+                "player_id": player.player_id,
+                "name": player.name,
+                "distance": player.distance,
+                "is_active": player.is_active,
+            }
+            for player in players
+        ]
+    )
 
 
-@app.route("/api/players", methods=["POST"])  # プレイヤーを追加
-def add_player():
-    new_player = request.get_json()
-    player = Player(name=new_player["name"])
-    db.session.add(player)
-    db.session.commit()
-    return jsonify({"id": player.id, "name": player.name}), 201
+@app.route("/api/update_distance", methods=["POST"])
+def update_distance():
+    data = request.get_json()
+    player_id = data.get("player_id")
+    distance = data.get("distance")
+
+    player = Player.query.filter_by(player_id=player_id).first()
+    if player:
+        player.distance = distance
+        db.session.commit()
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"status": "error", "message": "Player not found"}), 404
+
+
+@app.route("/api/end_game", methods=["POST"])  # ゲーム終了
+def end_game():
+    data = request.get_json()
+    player_id = data.get("player_id")
+
+    player = Player.query.filter_by(player_id=player_id).first()
+    if player:
+        player.is_active = False
+        db.session.commit()
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"status": "error", "message": "Player not found"}), 404
+
+
+@app.route("/api/ranking", methods=["GET"])  # ランキングを取得
+def get_ranking():
+    players = Player.query.order_by(Player.distance.desc()).all()
+    return jsonify(
+        [
+            {
+                "player_id": player.player_id,
+                "name": player.name,
+                "distance": player.distance,
+            }
+            for player in players
+        ]
+    )

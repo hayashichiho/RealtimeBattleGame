@@ -1,6 +1,8 @@
 // ==================================================
 // グローバル変数・定数
 // ==================================================
+let playerId;
+
 let bgWidth = 940;
 let bgHeight = 1200;
 let scrollSpeed = 12;
@@ -32,7 +34,7 @@ let invincibleTimer = 0;  // 衝突直後の無敵時間
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
 const INVINCIBLE_TIME = 50;   // 無敵フレーム数
-const MAX_FRAME = 30 * 60 * 2; // 2分後に終了
+const MAX_FRAME = 30 * 60 * 0.03; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）
 const slime_dir = 10;
@@ -47,6 +49,9 @@ let enemies = [];
 
 // ==================================================
 function setup() {
+  const urlParams = new URLSearchParams(window.location.search);
+  playerId = urlParams.get('player_id');
+
   canvasSize(bgWidth, bgHeight);
   loadImg(0, "static/images/grass.jpg");
   loadImg(1, "static/images/mgirl1.png"); // プレイヤー歩行画像
@@ -59,6 +64,8 @@ function setup() {
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();
 }
+
+
 
 // ==================================================
 // メインループ（30fps想定）
@@ -86,14 +93,8 @@ function mainloop() {
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
-      fText("ゲーム終了", 470, 400, 100, "red");
-      fText("結果発表", 470, 600, 50, "lime");
-      fText("距離: " + (distance * 0.01).toFixed(1) + "m", 470, 800, 50, "blue");
-      if (tmr === 30 * 8) {
-        idx = 0;
-        resetGame();
-      }
-      break;
+      endGame(playerId);
+      showRanking();
   }
 }
 
@@ -146,6 +147,8 @@ const gameMain = () => {
   }
   showDistance();
   showTime();
+  // プレイヤーの距離をサーバーに送信
+  updateDistance(playerId, distance);
 }
 
 // ==================================================
@@ -391,4 +394,42 @@ const showTime = () => {
   let restTime = (MAX_FRAME - tmr) / 30;
   fText("残り時間: " + restTime.toFixed(0) + "秒", 720, 50, 50, "black");
   sRect(520, 20, 400, 60, "black");
+}
+
+
+async function updateDistance(playerId, distance) {
+  try {
+    await fetch('/api/update_distance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ player_id: playerId, distance: distance / 100 }),
+    });
+  } catch (error) {
+    console.error('Error updating distance:', error);
+  }
+}
+
+// ゲーム終了時にサーバーに通知する関数
+function endGame(playerId) {
+  fetch('/api/end_game', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ player_id: playerId }),
+  });
+}
+
+// ゲーム終了後にランキングを取得して表示する関数
+function showRanking() {
+  fetch('/api/ranking')
+    .then(response => response.json())
+    .then(data => {
+      // ランキングを表示する処理
+      console.log(data);
+      // ランキング画面にリダイレクト
+      window.location.href = '/ranking';
+    });
 }

@@ -2,39 +2,26 @@
 <html lang="ja">
 
 <head>
-    <title>ドリブルゲーム - 待機</title>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <title>待機画面</title>
 </head>
 
 <body>
-    <div class="canvas-container">
-        <h1>待機中...</h1>
-        <h2>プレイヤー名: {{ player }}</h2>
-        <div class="rules">
-            <h3>参加者:</h3>
-            <div class="player-list">
-                {% for p in players %}
-                <div class="player-name">{{ p }}</div>
-                {% endfor %}
-            </div>
+    <h1>待機画面</h1>
+    <p>プレイヤーID: {{ player_id }}</p>
+    <p>参加プレイヤー:</p>
+    <ul>
+        {% for player in players %}
+        <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
 
-            {% if not game_started %}
-            {% if player == admin_name %}
-            <!-- 管理者用のゲーム開始ボタン -->
-            <form action="{{ url_for('start_game') }}" method="post">
-                <button type="submit">ゲーム開始</button>
-            </form>
-            {% else %}
-            <!-- 参加者用の待機メッセージ -->
-            <p>管理者がゲームを開始するのを待っています...</p>
-            {% endif %}
-            {% else %}
-            <!-- ゲーム開始後のメッセージ -->
-            <p>ゲームが開始されました。</p>
-            {% endif %}
-        </div>
-    </div>
+    {% if player_name == admin_name %}
+    <form action="{{ url_for('start_game') }}" method="post">
+        <input type="hidden" name="player_id" value="{{ player_id }}">
+        <button type="submit">ゲーム開始</button>
+    </form>
+    {% endif %}
 </body>
 
 </html>
