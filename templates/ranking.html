@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ランキング</title>
+</head>
+
+<body>
+    <h1>ランキング</h1>
+    <ul id="ranking-list">
+        <!-- ランキングデータはJavaScriptで動的に追加 -->
+    </ul>
+    <script>
+        // ランキングデータを取得して表示する
+        fetch('/api/ranking')
+            .then(response => response.json())
+            .then(data => {
+                const rankingList = document.getElementById('ranking-list');
+                data.forEach(player => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${player.name}: ${player.distance}m`;
+                    rankingList.appendChild(listItem);
+                });
+            });
+    </script>
+</body>
+
+</html>

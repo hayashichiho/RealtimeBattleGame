@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>待機画面</title>
+</head>
+
+<body>
+    <h1>待機画面</h1>
+    <p>プレイヤーID: {{ player_id }}</p>
+    <p>参加プレイヤー:</p>
+    <ul>
+        {% for player in players %}
+        <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if player_name == admin_name %}
+    <form action="{{ url_for('start_game') }}" method="post">
+        <input type="hidden" name="player_id" value="{{ player_id }}">
+        <button type="submit">ゲーム開始</button>
+    </form>
+    {% endif %}
+</body>
+
+</html>

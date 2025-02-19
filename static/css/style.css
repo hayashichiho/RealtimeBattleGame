@@ -1,0 +1,104 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #d8eca1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.title {
+    font-size: 2em;
+    margin-top: 20px;
+}
+
+.txt {
+    display: block;
+    width: 50%;
+    line-height: 3;
+    border: 1px solid #0c9a34;
+    box-sizing: border-box;
+    background: #ffffff;
+    margin: 10px auto;
+    font-size: 150%;
+    position: relative;
+    z-index: 9999;
+}
+
+.btn {
+    display: block;
+    width: 50%;
+    line-height: 3;
+    border: 1px solid #0c9a34;
+    box-sizing: border-box;
+    background: #0c9a34;
+    color: #ffffff;
+    margin: 10px auto;
+    font-size: 150%;
+    position: relative;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.rules {
+    background: #ffffff;
+    border: 1px solid #012406;
+    padding: 10px;
+    width: 80%;
+    margin: 20px auto;
+    box-sizing: border-box;
+    max-width: 600px;
+}
+
+.player-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.player-name {
+    margin: 5px;
+    padding: 5px 10px;
+    border: none;
+    background-color: transparent;
+    font-size: 1.2em;
+}
+
+canvas {
+    width: 100%;
+    height: auto;
+    max-width: 960px;
+    max-height: 1200px;
+}
+
+.error-messages {
+    color: red;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+
+    .txt,
+    .btn {
+        width: 80%;
+    }
+}
