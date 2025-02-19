@@ -1,6 +1,8 @@
 // ==================================================
 // グローバル変数・定数
 // ==================================================
+let playerId;
+
 let bgWidth = 940;
 let bgHeight = 1200;
 let scrollSpeed = 12;
@@ -48,21 +50,24 @@ let enemies = [];
 // 起動時の処理
 // ==================================================
 function setup() {
-  canvasSize(bgWidth, bgHeight);
-  loadImg(0, "image/grass.jpg");
-  loadImg(1, "image/mgirl1.png"); // プレイヤー歩行画像
-  loadImg(2, "image/mgirl2.png");
-  loadImg(3, "image/mgirl3.png");
-  loadImg(4, "image/enemy1.png"); // 敵用スプライトシート
-  loadImg(5, "image/mgirl4.png"); // プレイヤー泣き画像
-  loadImg(6, "image/mgirl5.png");
-  loadImg(7, "image/mgirl1_white.png"); // プレイヤー無敵時の歩行画像
-  loadImg(8, "image/mgirl2_white.png");
-  loadImg(9, "image/mgirl3_white.png");
-  loadImg(10, "image/star.png"); // 無敵時の画像
+  const urlParams = new URLSearchParams(window.location.search);
+  playerId = urlParams.get('player_id');
 
-  loadSound(0, "sound/walk.mp3"); // 通常時の音楽
-  loadSound(1, "sound/star.mp3"); // 無敵状態の音楽
+  canvasSize(bgWidth, bgHeight);
+  loadImg(0, "static/images/grass.jpg");
+  loadImg(1, "static/images/mgirl1.png"); // プレイヤー歩行画像
+  loadImg(2, "static/images/mgirl2.png");
+  loadImg(3, "static/images/mgirl3.png");
+  loadImg(4, "static/images/enemy1.png"); // 敵用スプライトシート
+  loadImg(5, "static/images/mgirl4.png"); // プレイヤー泣き画像
+  loadImg(6, "static/images/mgirl5.png");
+  loadImg(7, "static/images/mgirl1_white.png"); // プレイヤー無敵時の歩行画像
+  loadImg(8, "static/images/mgirl2_white.png");
+  loadImg(9, "static/images/mgirl3_white.png");
+  loadImg(10, "static/images/star.png"); // 無敵時の画像
+
+  loadSound(0, "static/sounds/walk.mp3"); // 通常時の音楽
+  loadSound(1, "static/sounds/star.mp3"); // 無敵状態の音楽
 
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();
@@ -96,14 +101,8 @@ function mainloop() {
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
-      stopBgm();
-      fText("ゲーム終了", 470, 400, 100, "red");
-      fText("結果発表", 470, 600, 50, "lime");
-      fText("距離: " + (distance * 0.04).toFixed(1) + "m", 470, 800, 50, "blue");
-      if (tmr === 30 * 8) {
-        idx = 0;
-        resetGame();
-      }
+      endGame(playerId);
+      showRanking();
       break;
   }
 }
@@ -165,6 +164,8 @@ const gameMain = () => {
   }
   showDistance();
   showTime();
+  // プレイヤーの距離をサーバーに送信
+  updateDistance(playerId, distance);
 }
 
 // ==================================================
@@ -447,4 +448,41 @@ const showTime = () => {
   let restTime = (MAX_FRAME - tmr) / 30;
   fText("残り時間: " + restTime.toFixed(0) + "秒", 720, 50, 50, "black");
   sRect(520, 20, 400, 60, "black");
+}
+
+async function updateDistance(playerId, distance) {
+  try {
+    await fetch('/api/update_distance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ player_id: playerId, distance: distance / 100 }),
+    });
+  } catch (error) {
+    console.error('Error updating distance:', error);
+  }
+}
+
+// ゲーム終了時にサーバーに通知する関数
+function endGame(playerId) {
+  fetch('/api/end_game', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ player_id: playerId }),
+  });
+}
+
+// ゲーム終了後にランキングを取得して表示する関数
+function showRanking() {
+  fetch('/api/ranking')
+    .then(response => response.json())
+    .then(data => {
+      // ランキングを表示する処理
+      console.log(data);
+      // ランキング画面にリダイレクト
+      window.location.href = '/ranking';
+    });
 }
