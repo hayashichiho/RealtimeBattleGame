@@ -1,13 +1,3 @@
-/*
-JavaScript&HTML5 ゲーム開発用システム
-開発 ワールドワイドソフトウェア有限会社
-
-（使用条件）
-本ソースコードの著作権は開発元にあります。
-利用されたい方はメールにてお問い合わせ下さい。
-th@wwsft.com ワールドワイドソフトウェア 廣瀬
-*/
-
 // ---------- グローバル変数 ----------
 var SYS_VER = "Ver.20200402";
 var DEBUG = false;
@@ -116,6 +106,10 @@ function str(val) {//数を文字列に変換
 
 function rnd(max) {//乱数
 	return int(Math.random()*max);
+}
+
+function rnd2(min, max) {
+	return int(Math.random()*(max-min+1))+min;
 }
 
 function abs(val) {//絶対値
@@ -299,6 +293,14 @@ function loadSound(n, filename) {
 	soundloaded++;
 }
 
+function loadSound2(n, filename) {
+    if (!soundfile) soundfile = []; // soundfile 配列が未定義なら初期化
+    soundfile[n] = new Audio(filename);
+    soundfile[n].load();
+    console.log("サウンド読み込み: " + n);
+    soundloaded++;
+}
+
 function playSE(n) {
 	if(SOUND_ON == false) return;
 	if(isBgm == 2) return;
@@ -319,6 +321,20 @@ function playBgm(n) {
 	soundfile[n].play();
 	isBgm = 1;//BGM流れている
 }
+
+function playBgm2(n) {
+    if (!SOUND_ON) return;
+    if (!soundfile[n]) {
+        console.error("playBgm: soundfile[" + n + "] が未定義です");
+        return;
+    }
+    console.log("ＢＧＭ " + n + " 再生開始");
+    bgmNo = n;
+    soundfile[n].loop = true;
+    soundfile[n].play();
+    isBgm = 1; // BGM流れている
+}
+
 
 function pauseBgm() {
 	soundfile[bgmNo].pause();

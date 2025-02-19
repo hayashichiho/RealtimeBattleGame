@@ -28,10 +28,12 @@ let fallDir;
 let cryTimer = 0;         // 泣く時間カウント
 let fallTimer = 0;        // 落ちる時間カウント
 let invincibleTimer = 0;  // 衝突直後の無敵時間
+let starTimer = 0;        // 無敵アイテム取得時の無敵時間
 
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
-const INVINCIBLE_TIME = 50;   // 無敵フレーム数
+const INVINCIBLE_TIME = 50;   // 無敵フレーム数(衝突時)
+const STAR_TIME = 240;        // アイテム取得時の無敵時間
 const MAX_FRAME = 30 * 60 * 2; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）
@@ -51,9 +53,16 @@ function setup() {
   loadImg(1, "image/mgirl1.png"); // プレイヤー歩行画像
   loadImg(2, "image/mgirl2.png");
   loadImg(3, "image/mgirl3.png");
-  loadImg(4, "image/enemy1.png");  // 敵用スプライトシート
-  loadImg(5, "image/mgirl4.png");  // プレイヤー泣き画像
+  loadImg(4, "image/enemy1.png"); // 敵用スプライトシート
+  loadImg(5, "image/mgirl4.png"); // プレイヤー泣き画像
   loadImg(6, "image/mgirl5.png");
+  loadImg(7, "image/mgirl1_white.png"); // プレイヤー無敵時の歩行画像
+  loadImg(8, "image/mgirl2_white.png");
+  loadImg(9, "image/mgirl3_white.png");
+  loadImg(10, "image/star.png"); // 無敵時の画像
+
+  loadSound(0, "sound/walk.mp3"); // 通常時の音楽
+  loadSound(1, "sound/star.mp3"); // 無敵状態の音楽
 
   // 最初のタイミングで画面下部に必要な敵行を生成
   updateEnemies();
@@ -73,6 +82,7 @@ function mainloop() {
       if (tapC > 0) {
         idx = 1;
         tmr = 0;
+        playBgm(0);
       }
       break;
 
@@ -81,13 +91,15 @@ function mainloop() {
       if (tmr >= MAX_FRAME) {
         idx = 2;
         tmr = 0;
+        stopBgm();
       }
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
+      stopBgm();
       fText("ゲーム終了", 470, 400, 100, "red");
       fText("結果発表", 470, 600, 50, "lime");
-      fText("距離: " + (distance * 0.01).toFixed(1) + "m", 470, 800, 50, "blue");
+      fText("距離: " + (distance * 0.04).toFixed(1) + "m", 470, 800, 50, "blue");
       if (tmr === 30 * 8) {
         idx = 0;
         resetGame();
@@ -100,6 +112,14 @@ const gameMain = () => {
   tapCooldown = Math.max(0, tapCooldown - 1);
   // 無敵時間カウント（衝突後または落下後）
   if (invincibleTimer > 0) invincibleTimer--;
+
+  if (starTimer > 0) {
+    starTimer--;
+    if(starTimer === 0) {
+      stopBgm();  // 無敵状態のBGMを停止
+      playBgm(0); // 通常のBGMを再生
+    }
+  }
   
   if (isCrying) {
     cryTimer++;
@@ -108,7 +128,7 @@ const gameMain = () => {
     setEnemy();         // 敵描画（※位置は更新済み）    
     // 泣くアニメーション（プレイヤー画像）
     drawImg(5 + int(cryTimer / 10) % 2, personX, playerY);
-    if (cryTimer >= 120) {
+    if (cryTimer >= 120) { // 泣いている時間の待機時間は4秒
       isCrying = false;
       cryTimer = 0;
     }
@@ -126,11 +146,11 @@ const gameMain = () => {
     let fallWidth = Math.max(initialWidth - fallTimer * 2, 0);
     let fallHeight = Math.max(initialHeight - fallTimer, 0);
     if(fallDir == 1){
-      drawImgS(5 + int(fallTimer / 10) % 2, personX - (144/120) * fallTimer - 30, playerY, fallWidth, fallHeight);
+      drawImgS(5 + int(fallTimer / 10) % 2, personX - (144/120) * fallTimer - 50, playerY, fallWidth, fallHeight);
     } if(fallDir = -1){
-      drawImgS(5 + int(fallTimer / 10) % 2, personX + (144/120) * fallTimer - 60, playerY, fallWidth, fallHeight);
+      drawImgS(5 + int(fallTimer / 10) % 2, personX + (144/120) * fallTimer - 20, playerY, fallWidth, fallHeight);
     }
-    if (fallTimer >= 120) {
+    if (fallTimer >= 150) { // 落下した場合の待機時間は5秒
       isFalling = false;
       fallTimer = 0;
       personX = 450;
@@ -208,20 +228,20 @@ function spawnEnemyRow(rowY, stage) {
   let rowEnemies = [];
   if (stage === 1) {
     if (rnd(100) < 70) { // 70%でスライム
-      rowEnemies.push({ type: "slime", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "slime", x: rnd2(30, bgWidth - 120), y: rowY });
     }
   } else if (stage === 2) {
     if (rnd(100) < 70) { // 70%で敵を出現させて，その中で70%でスライム
       let type1 = (rnd(100) < 70) ? "slime" : "ghost";
-      rowEnemies.push({ type: type1, x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: type1, x: rnd2(30, bgWidth - 120), y: rowY });
     }
   } else if (stage === 3) {
     let pro3 = rnd(100); // 20%で2体の敵を出現させる，20%でスライム，20%でゴースト
     if(pro3 < 20) {
-      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
-      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd2(30, bgWidth - 120), y: rowY });
+      rowEnemies.push({ type: (rnd(100) < 50 ? "slime" : "ghost"), x: rnd2(30, bgWidth - 120), y: rowY });
     } else if (pro3 < 40) {
-      rowEnemies.push({ type: "slime", x: rnd(bgWidth - 72), y: rowY });
+      rowEnemies.push({ type: "slime", x: rnd2(30, bgWidth - 120), y: rowY });
     } else if (pro3 < 60) {
       rowEnemies.push({ type: "ghost", x: rnd(bgWidth - 72), y: rowY });
     }
@@ -276,7 +296,7 @@ function spawnEnemyRow(rowY, stage) {
     if (pro9 < 30) {
       rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
       rowEnemies.push({ type: (rnd(100) < 50 ? "ghost" : "skelton"), x: rnd(bgWidth - 72), y: rowY });
-    } else if (pro9 < 70) {
+    } else if (pro9 < 60) {
       rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
     }
   } else {
@@ -284,9 +304,12 @@ function spawnEnemyRow(rowY, stage) {
     if (pro10 < 30) {
       rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
       rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
-    } else if (pro10 < 70) {
+    } else if (pro10 < 60) {
       rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
     }
+  }
+  if (rnd(100) < 20){ // 無敵アイテムの設定
+    rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
   }
   return rowEnemies;
 }
@@ -299,6 +322,7 @@ function resetGame() {
   bgOffset = 0;            // 背景オフセットをリセット
   tapCooldown = 0;
   invincibleTimer = 0;
+  starTimer = 0;
   personX = 450;           // プレイヤーの位置も初期位置に戻す
   plAni = 0;
   stage = 0;
@@ -326,6 +350,8 @@ const setEnemy = () => {
         let sx = (EN_ANIME[int(tmr / 4) % 4] + 6) * 72;
         let sy = (skelton_dir - 1) * 72;
         drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
+      } else if (e.type === "star") {
+        drawImg(10, e.x, e.y);
       }
     }
   });
@@ -336,33 +362,64 @@ const setEnemy = () => {
 // ==================================================
 const personWalk = () => {
   plAni++;
-  // ※ tapC はタップ入力状態と仮定
+  // タップ入力状態（tapC）で向きを反転
   if (tapC > 0 && tapCooldown <= 0) {
     plDir *= -1;
     tapCooldown = TAP_COOLDOWN_TIME;
   }
+
   if (plDir === 1) {
-    drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
+    if (starTimer > 0) { // 無敵時は mgirl_white 系の画像を使用
+      if (starTimer < 60) { // 無敵残り60フレーム未満なら点滅表示
+        if (tmr % 10 < 8) {
+          drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
+        }
+      } else {
+        drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
+      }
+    } else {
+      drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
+    }
     if (personX < bgWidth - 70) personX += 10;
-  }
-  if (plDir === -1) {
-    drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
+  } else if (plDir === -1) {
+    if (starTimer > 0) { // 無敵時は mgirl_white 系の画像を使用
+      if (starTimer < 60) { // 無敵残り60フレーム未満なら点滅表示
+        if (tmr % 20 < 10) {
+          drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
+        }
+      } else {
+        drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
+      }
+    } else {
+      drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
+    }
     if (personX > 0) personX -= 10;
   }
 }
 
+
 // ==================================================
-// 衝突判定（表示領域内の敵とプレイヤーの衝突判定）
+// 死亡判定（表示領域内の敵とプレイヤーの衝突判定）
 // ==================================================
 const checkCollision = () => {
-  if (invincibleTimer > 0) return;
   for (let e of enemies) {
     // プレイヤーのYは固定 (playerY ≒900)
     if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
-      isCrying = true;
-      cryTimer = 0;
-      invincibleTimer = INVINCIBLE_TIME;
-      break;
+      if(e.type === "star") {
+        // ★ 無敵アイテムとの衝突時
+        stopBgm();        // 現在のBGMを停止
+        playBgm(1);       // 無敵用BGM（star.mp3）を再生
+        starTimer = STAR_TIME; // 240フレーム無敵
+        enemies = enemies.filter(enemy => enemy !== e);
+        break;
+      } else {
+        if (invincibleTimer > 0 || starTimer > 0) return;
+        // 通常の敵との衝突時
+        isCrying = true;
+        cryTimer = 0;
+        invincibleTimer = INVINCIBLE_TIME;
+        break;
+      }
     }
   }
 }
@@ -382,8 +439,8 @@ const checkFalling = () => {
 // ==================================================
 const showDistance = () => {
   // 表示上、distance の単位を適当に変換（例：distance * 0.01 m）
-  fText("距離: " + (distance * 0.01).toFixed(1) + "m", 330, 50, 50, "black");
-  sRect(170, 20, 320, 60, "black");
+  fText("距離: " + (distance * 0.04).toFixed(1) + "m", 330, 50, 50, "black");
+  sRect(170, 20, 380, 60, "black");
 }
 
 const showTime = () => {
