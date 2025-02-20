@@ -7,21 +7,96 @@
 </head>
 
 <body>
-    <h1>待機画面</h1>
-    <p>プレイヤーID: {{ player_id }}</p>
+    <h1>待機中</h1>
+    <p>参加人数: <span id="player-count">0</span>人</p>
     <p>参加プレイヤー:</p>
-    <ul>
-        {% for player in players %}
-        <li>{{ player }}</li>
-        {% endfor %}
+    <ul id="player-list">
+        <!-- プレイヤーリストはJavaScriptで動的に追加 -->
     </ul>
 
     {% if player_name == admin_name %}
-    <form action="{{ url_for('start_game') }}" method="post">
+    <form id="start-game-form" action="javascript:void(0);" method="post">
         <input type="hidden" name="player_id" value="{{ player_id }}">
         <button type="submit">ゲーム開始</button>
     </form>
     {% endif %}
+
+    <script>
+        // プレイヤーリストを更新する
+        function updatePlayerList() {
+            fetch('/api/players') // プレイヤーリストを取得するAPIのURL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                }) // レスポンスをJSONとして解釈する
+                .then(data => {
+                    const playerList = document.getElementById('player-list'); // プレイヤーリストの要素
+                    const playerCount = document.getElementById('player-count'); // プレイヤー人数の要素
+                    playerList.innerHTML = ''; // リストをクリア
+                    data.forEach(player => {
+                        const listItem = document.createElement('li'); // プレイヤーリストの項目
+                        listItem.textContent = player.name; // プレイヤー名を表示
+                        playerList.appendChild(listItem); // プレイヤーリストに追加
+                    });
+                    playerCount.textContent = data.length; // プレイヤー人数を更新
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // ゲーム開始状態をチェック
+        function checkGameStatus() {
+            fetch('/api/game_status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                }) // レスポンスをJSONとして解釈する
+                .then(data => { // レスポンスデータを受け取る
+                    if (data.game_started) {
+                        window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // 初回のリスト更新
+        updatePlayerList();
+
+        // 1.5秒ごとにリストを更新
+        setInterval(updatePlayerList, 1500);
+
+        // 1秒ごとにゲーム開始状態をチェック
+        setInterval(checkGameStatus, 1000);
+
+        // ゲーム開始ボタンが押されたときの処理
+        document.getElementById('start-game-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // フォームのデフォルトの送信を防ぐ
+            fetch('/start_game', { // URLを修正
+                method: 'POST'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                }) // レスポンスをJSONとして解釈する
+                .then(data => { // レスポンスデータを受け取る
+                    if (data.status === 'success') { // ゲーム開始に成功した場合
+                        window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
 </body>
 
 </html>

@@ -13,14 +13,14 @@
     </ul>
     <script>
         // ランキングデータを取得して表示する
-        fetch('/api/ranking')
-            .then(response => response.json())
+        fetch('/api/ranking') // ランキングデータを取得するAPIのURL
+            .then(response => response.json()) // レスポンスをJSONとして解釈する
             .then(data => {
-                const rankingList = document.getElementById('ranking-list');
+                const rankingList = document.getElementById('ranking-list'); // ランキングリストの要素
                 data.forEach(player => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${player.name}: ${player.distance}m`;
-                    rankingList.appendChild(listItem);
+                    const listItem = document.createElement('li'); // ランキングリストの項目
+                    listItem.textContent = `${player.name}: ${player.distance}m`; // プレイヤー名と距離を表示
+                    rankingList.appendChild(listItem); // ランキングリストに追加
                 });
             });
     </script>

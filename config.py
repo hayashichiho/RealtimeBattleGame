@@ -1,5 +1,5 @@
 class Config:
-    SQLALCHEMY_DATABASE_URI = "sqlite:///app.db"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///players.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
@@ -11,4 +11,7 @@ class ProductionConfig(Config):
     DEBUG = False
 
 
-config = {"development": DevelopmentConfig, "production": ProductionConfig}
+config = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+}

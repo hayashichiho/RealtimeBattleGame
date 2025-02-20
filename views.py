@@ -20,11 +20,13 @@ def index():  # ログイン画面を表示
     "/login", methods=["POST"]
 )  # ログインフォームからPOSTリクエストがあった場合の処理
 def login():
-    player_name = request.form["name"]
-    player_id = generate_unique_player_id()
-    player = Player(player_id=player_id, name=player_name)
-    db.session.add(player)
-    db.session.commit()
+    player_name = request.form["name"]  # プレイヤー名を取得
+    player_id = generate_unique_player_id()  # プレイヤーIDを生成
+    player = Player(
+        player_id=player_id, name=player_name
+    )  # プレイヤークラスのインスタンスを生成
+    db.session.add(player)  # プレイヤーをデータベースに追加
+    db.session.commit()  # データベースにコミット
     return redirect(
         url_for("wait", player_id=player_id, player_name=player_name)
     )  # プレイヤーIDと名前をクエリパラメータとして渡す
@@ -34,23 +36,30 @@ def login():
 def wait():
     player_id = request.args.get("player_id")
     player_name = request.args.get("player_name")
-    players = [p.name for p in Player.query.all()]
-    game_started = False  # ゲームが開始されたかどうかのフラグ
+    players = [p.name for p in Player.query.all()]  # プレイヤー一覧を取得
     admin_name = "admin"  # 管理者の名前
+
     return render_template(
         "wait.html",
         player_id=player_id,
         player_name=player_name,
         players=players,
-        game_started=game_started,
         admin_name=admin_name,
     )
 
 
-@app.route("/start_game", methods=["POST"])  # ゲーム開始ボタンが押された場合の処理
+@app.route("/start_game", methods=["POST"])
 def start_game():
-    player_id = request.form["player_id"]
-    return redirect(url_for("game", player_id=player_id))
+    Player.query.update({Player.game_started: True})
+    db.session.commit()
+    return jsonify({"status": "success"})
+
+
+@app.route("/api/game_status", methods=["GET"])
+def game_status():
+    # いずれかのプレイヤーがゲームを開始していればゲームが開始されたとみなす
+    game_started = Player.query.filter_by(game_started=True).first() is not None
+    return jsonify({"game_started": game_started})
 
 
 @app.route("/game")  # ゲーム画面を表示
@@ -86,12 +95,12 @@ def register_player():
             "player_id": player.player_id,
             "name": player.name,
             "distance": player.distance,
-            "is_active": player.is_active,
+            "game_started": player.game_started,
         }
     ), 201
 
 
-@app.route("/api/players", methods=["GET"])  # プレイヤー一覧を取得
+@app.route("/api/players", methods=["GET"])
 def get_players():
     players = Player.query.all()
     return jsonify(
@@ -100,7 +109,7 @@ def get_players():
                 "player_id": player.player_id,
                 "name": player.name,
                 "distance": player.distance,
-                "is_active": player.is_active,
+                "game_started": player.game_started,
             }
             for player in players
         ]
@@ -129,7 +138,7 @@ def end_game():
 
     player = Player.query.filter_by(player_id=player_id).first()
     if player:
-        player.is_active = False
+        player.game_started = False
         db.session.commit()
         return jsonify({"status": "success"}), 200
     else:
