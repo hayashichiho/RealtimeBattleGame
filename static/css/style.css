@@ -103,7 +103,6 @@ canvas {
     }
 }
 
-/* Wait page specific styles */
 .wait-container {
     display: flex;
     flex-direction: column;

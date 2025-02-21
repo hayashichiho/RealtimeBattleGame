@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
   let gameStarted = false;
-  let gameEnded = false;
 
   function startGame() {
     console.log("startGame called");

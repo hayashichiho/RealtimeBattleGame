@@ -13,40 +13,45 @@ from flask import (
 from . import app, db
 from .models import Player, generate_unique_player_id
 
-game_start_time = None
+game_start_time = None  # ゲーム開始時刻
+game_end_time = None  # ゲーム終了時刻
 
-game_start_time = None
-game_end_time = None
-lock = threading.Lock()
+lock = threading.Lock()  # ロックオブジェクト
 
 
-@app.route("/api/game_times", methods=["GET"])
+@app.route("/api/game_times", methods=["GET"])  # ゲームの開始時刻と終了時刻を取得
 def get_game_times():
     if game_start_time and game_end_time:
         return jsonify(
             {
-                "start_time": game_start_time.isoformat(),
-                "end_time": game_end_time.isoformat(),
+                "start_time": game_start_time.isoformat(),  # 開始時刻をISO形式で返す
+                "end_time": game_end_time.isoformat(),  # 終了時刻をISO形式で返す
             }
         )
     else:
-        return jsonify({"status": "error", "message": "Game times not set"}), 404
+        return jsonify(
+            {"status": "error", "message": "Game times not set"}
+        ), 404  # エラーメッセージを返す
 
 
-@app.route("/api/current_time", methods=["GET"])
+@app.route("/api/current_time", methods=["GET"])  # 現在時刻を取得
 def get_current_time():
-    return jsonify({"current_time": datetime.utcnow().isoformat()})
+    return jsonify(
+        {"current_time": datetime.utcnow().isoformat()}
+    )  # 現在時刻をISO形式で返す
 
 
-@app.route("/api/game_status", methods=["GET"])
+@app.route("/api/game_status", methods=["GET"])  # ゲームの状態を取得
 def game_status():
-    game_started = Player.query.filter_by(game_started=True).first() is not None
-    return jsonify({"game_started": game_started})
+    game_started = (
+        Player.query.filter_by(game_started=True).first() is not None
+    )  # ゲームが開始されているかどうか
+    return jsonify({"game_started": game_started})  # ゲームの状態を返す
 
 
-@app.route("/api/ranking", methods=["GET"])
+@app.route("/api/ranking", methods=["GET"])  # ランキングを取得
 def get_ranking():
-    players = Player.query.order_by(Player.distance.desc()).all()
+    players = Player.query.order_by(Player.distance.desc()).all()  # ランキングを取得
     return jsonify(
         [
             {
@@ -158,18 +163,14 @@ def wait():
     )
 
 
-game_start_time = None
-game_end_time = None
-
-
-@app.route("/start_game", methods=["POST"])
+@app.route("/start_game", methods=["POST"])  # ゲームを開始する処理
 def start_game():
     global game_start_time, game_end_time
     game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
-    game_end_time = game_start_time + timedelta(seconds=25)  # 1分後にゲーム終了
-    Player.query.update({Player.game_started: True})
-    db.session.commit()
-    return jsonify(
+    game_end_time = game_start_time + timedelta(seconds=25)  # 25秒後にゲーム終了
+    Player.query.update({Player.game_started: True})  # ゲームを開始
+    db.session.commit()  # コミット
+    return jsonify(  # 成功時のレスポンス
         {
             "status": "success",
             "start_time": game_start_time.isoformat(),
@@ -190,12 +191,12 @@ def serve_images(filename):
 
 @app.route("/api/register", methods=["POST"])  # プレイヤーを登録
 def register_player():
-    data = request.get_json()
-    player_id = generate_unique_player_id()
-    player = Player(player_id=player_id, name=data["name"])
-    db.session.add(player)
-    db.session.commit()
-    return jsonify(
+    data = request.get_json()  # リクエストのJSONデータを取得
+    player_id = generate_unique_player_id()  # プレイヤーIDを生成
+    player = Player(player_id=player_id, name=data["name"])  # プレイヤーを生成
+    db.session.add(player)  # プレイヤーをデータベースに追加
+    db.session.commit()  # コミット
+    return jsonify(  # 成功時のレスポンス
         {
             "player_id": player.player_id,
             "name": player.name,
@@ -205,10 +206,10 @@ def register_player():
     ), 201
 
 
-@app.route("/api/players", methods=["GET"])
+@app.route("/api/players", methods=["GET"])  # プレイヤー一覧を取得
 def get_players():
-    players = Player.query.all()
-    return jsonify(
+    players = Player.query.all()  # プレイヤー一覧を取得
+    return jsonify(  # プレイヤー一覧をJSON形式で返す
         [
             {
                 "player_id": player.player_id,

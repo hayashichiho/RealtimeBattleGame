@@ -1,6 +1,6 @@
 function setup() {
-    const urlParams = new URLSearchParams(window.location.search);
-    playerId = urlParams.get('player_id');
+    const urlParams = new URLSearchParams(window.location.search); // URLパラメータを取得
+    playerId = urlParams.get('player_id'); // プレイヤーIDを取得
 
     canvasSize(bgWidth, bgHeight);
     loadImg(0, "static/images/grass.jpg");
