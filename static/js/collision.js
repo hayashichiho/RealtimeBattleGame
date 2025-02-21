@@ -1,3 +1,4 @@
+// 歩行アニメーション
 const personWalk = () => {
     plAni++;
     if (tapC > 0 && tapCooldown <= 0) {
@@ -34,6 +35,7 @@ const personWalk = () => {
     }
 }
 
+// 衝突判定
 const checkCollision = () => {
     for (let e of enemies) {
         if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
@@ -54,6 +56,7 @@ const checkCollision = () => {
     }
 }
 
+// 落下判定
 const checkFalling = () => {
     if (invincibleTimer > 0) return;
     if (personX < 30 || personX > 850) {

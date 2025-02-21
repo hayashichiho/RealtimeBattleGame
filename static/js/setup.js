@@ -22,6 +22,7 @@ function setup() {
     updateEnemies();
 }
 
+// ゲームの初期化
 function resetGame() {
     console.log("resetGame called");
     enemies = [];            // 前回の敵をすべて削除

@@ -57,7 +57,7 @@ def get_ranking():
             {
                 "player_id": player.player_id,
                 "name": player.name,
-                "distance": player.distance * 4,  # 距離を4倍にして表示
+                "distance": player.distance,  # 距離を4倍にして表示
             }
             for player in players
         ]

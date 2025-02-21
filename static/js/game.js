@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
+  // ゲーム状態を定期的にチェック
   function checkGameStatus() {
     console.log("checkGameStatus called");
     fetch('/api/game_status')
@@ -114,7 +115,7 @@ function mainloop() {
   switch (idx) {
     case 1: // ゲームメイン
       gameMain();
-      if (tmr >= MAX_FRAME) {
+      if (tmr >= MAX_FRAME) { // ゲーム終了
         idx = 2;
         tmr = 0;
         stopBgm();
