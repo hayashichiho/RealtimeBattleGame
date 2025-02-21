@@ -16,49 +16,42 @@ from .models import Player, generate_unique_player_id
 
 game_start_time = None  # ゲーム開始時刻
 game_end_time = None  # ゲーム終了時刻
-
 lock = threading.Lock()  # ロックオブジェクト
 
 
-@app.route("/api/game_times", methods=["GET"])  # ゲームの開始時刻と終了時刻を取得
+@app.route("/api/game_times", methods=["GET"])
 def get_game_times():
     if game_start_time and game_end_time:
         return jsonify(
             {
-                "start_time": game_start_time.isoformat(),  # 開始時刻をISO形式で返す
-                "end_time": game_end_time.isoformat(),  # 終了時刻をISO形式で返す
+                "start_time": game_start_time.isoformat(),
+                "end_time": game_end_time.isoformat(),
             }
         )
     else:
-        return jsonify(
-            {"status": "error", "message": "Game times not set"}
-        ), 404  # エラーメッセージを返す
+        return jsonify({"status": "error", "message": "Game times not set"}), 404
 
 
-@app.route("/api/current_time", methods=["GET"])  # 現在時刻を取得
+@app.route("/api/current_time", methods=["GET"])
 def get_current_time():
-    return jsonify(
-        {"current_time": datetime.utcnow().isoformat()}
-    )  # 現在時刻をISO形式で返す
+    return jsonify({"current_time": datetime.utcnow().isoformat()})
 
 
-@app.route("/api/game_status", methods=["GET"])  # ゲームの状態を取得
+@app.route("/api/game_status", methods=["GET"])
 def game_status():
-    game_started = (
-        Player.query.filter_by(game_started=True).first() is not None
-    )  # ゲームが開始されているかどうか
-    return jsonify({"game_started": game_started})  # ゲームの状態を返す
+    game_started = Player.query.filter_by(game_started=True).first() is not None
+    return jsonify({"game_started": game_started})
 
 
-@app.route("/api/ranking", methods=["GET"])  # ランキングを取得
+@app.route("/api/ranking", methods=["GET"])
 def get_ranking():
-    players = Player.query.order_by(Player.distance.desc()).all()  # ランキングを取得
+    players = Player.query.order_by(Player.distance.desc()).all()
     return jsonify(
         [
             {
                 "player_id": player.player_id,
                 "name": player.name,
-                "distance": player.distance,  # 距離を4倍にして表示
+                "distance": player.distance * 4 / 100,  # 距離を4倍にして表示
             }
             for player in players
         ]
@@ -102,8 +95,8 @@ async def end_game():
     data = request.get_json()  # リクエストのJSONデータを取得
     player_id = data.get("player_id")  # プレイヤーIDを取得
 
-    async with async_session() as session:  # セッションを開始
-        async with session.begin():  # トランザクションを開始
+    async with async_session() as session:
+        async with session.begin():
             try:
                 result = await session.execute(
                     select(Player).filter_by(player_id=player_id)
@@ -175,7 +168,11 @@ def wait():
     )
 
 
-@app.route("/start_game", methods=["POST"])  # ゲームを開始する処理
+game_start_time = None
+game_end_time = None
+
+
+@app.route("/start_game", methods=["POST"])
 def start_game():
     global game_start_time, game_end_time
     game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
@@ -203,12 +200,12 @@ def serve_images(filename):
 
 @app.route("/api/register", methods=["POST"])  # プレイヤーを登録
 def register_player():
-    data = request.get_json()  # リクエストのJSONデータを取得
-    player_id = generate_unique_player_id()  # プレイヤーIDを生成
-    player = Player(player_id=player_id, name=data["name"])  # プレイヤーを生成
-    db.session.add(player)  # プレイヤーをデータベースに追加
-    db.session.commit()  # コミット
-    return jsonify(  # 成功時のレスポンス
+    data = request.get_json()
+    player_id = generate_unique_player_id()
+    player = Player(player_id=player_id, name=data["name"])
+    db.session.add(player)
+    db.session.commit()
+    return jsonify(
         {
             "player_id": player.player_id,
             "name": player.name,
@@ -218,10 +215,10 @@ def register_player():
     ), 201
 
 
-@app.route("/api/players", methods=["GET"])  # プレイヤー一覧を取得
+@app.route("/api/players", methods=["GET"])
 def get_players():
-    players = Player.query.all()  # プレイヤー一覧を取得
-    return jsonify(  # プレイヤー一覧をJSON形式で返す
+    players = Player.query.all()
+    return jsonify(
         [
             {
                 "player_id": player.player_id,

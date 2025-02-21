@@ -4,64 +4,150 @@
 <head>
     <meta charset="UTF-8">
     <title>待機画面</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #d8eca1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wait-container {
+            max-width: 800px;
+            width: 90%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .wait-title {
+            color: #0c9a34;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .player-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .player-list li {
+            background-color: white;
+            border: 2px solid #0c9a34;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .player-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .start-game-btn {
+            background-color: #0c9a34;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: white;
+            width: auto;
+            min-width: 200px;
+        }
+
+        .start-game-btn:hover {
+            background-color: #097a2a;
+            transform: translateY(-2px);
+        }
+
+        .player-count {
+            background-color: #0c9a34;
+            color: white;
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 576px) {
+            .wait-container {
+                width: 95%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <p class="wait-message">他のプレイヤーが参加するのを待っています。</p>
-    <div class="player-list">
-        {% for player in players %}
-        <div class="player-name">{{ player }}</div>
-        {% endfor %}
+    <div class="wait-container">
+        <h1 class="wait-title text-center display-4">待機中</h1>
+        <div class="text-center">
+            <div class="player-count mb-3">
+                参加人数: <span id="player-count" class="fw-bold">0</span>人
+            </div>
+        </div>
+        <h2 class="h5 text-center mb-3">参加プレイヤー:</h2>
+        <ul id="player-list" class="player-list">
+            <!-- プレイヤーリストはJavaScriptで動的に追加 -->
+        </ul>
+
+        {% if player_name == admin_name %}
+        <div class="text-center mt-4">
+            <form id="start-game-form" action="javascript:void(0);" method="post">
+                <input type="hidden" name="player_id" value="{{ player_id }}">
+                <button type="submit" class="start-game-btn">ゲーム開始</button>
+            </form>
+        </div>
+        {% endif %}
     </div>
-    <p>プレイヤー人数: <span id="player-count">{{ players|length }}</span>人</p>
 
-    {% if player_name == admin_name %}
-    <form id="start-game-form" action="javascript:void(0);" method="post">
-        <input type="hidden" name="player_id" value="{{ player_id }}">
-        <button type="submit">ゲーム開始</button>
-    </form>
-    {% endif %}
-
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // プレイヤーリストを更新する
         function updatePlayerList() {
-            fetch('/api/players') // プレイヤーリストを取得するAPIのURL
+            fetch('/api/players')
                 .then(response => {
-                    if (!response.ok) { // レスポンスが正常でない場合
+                    if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
                     return response.json();
-                }) // レスポンスをJSONとして解釈する
+                })
                 .then(data => {
-                    const playerList = document.getElementById('player-list'); // プレイヤーリストの要素
-                    const playerCount = document.getElementById('player-count'); // プレイヤー人数の要素
-                    playerList.innerHTML = ''; // リストをクリア
+                    const playerList = document.getElementById('player-list');
+                    const playerCount = document.getElementById('player-count');
+                    playerList.innerHTML = '';
                     data.forEach(player => {
-                        const listItem = document.createElement('li'); // プレイヤーリストの項目
-                        listItem.textContent = player.name; // プレイヤー名を表示
-                        playerList.appendChild(listItem); // プレイヤーリストに追加
+                        const listItem = document.createElement('li');
+                        listItem.textContent = player.name;
+                        listItem.className = 'text-center';
+                        playerList.appendChild(listItem);
                     });
-                    playerCount.textContent = data.length; // プレイヤー人数を更新
+                    playerCount.textContent = data.length;
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
 
-        // ゲーム開始状態をチェック
         function checkGameStatus() {
             fetch('/api/game_status')
                 .then(response => {
-                    if (!response.ok) { // レスポンスが正常でない場合
+                    if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
                     return response.json();
-                }) // レスポンスをJSONとして解釈する
-                .then(data => { // レスポンスデータを受け取る
+                })
+                .then(data => {
                     if (data.game_started) {
-                        window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
+                        window.location.href = "/game?player_id={{ player_id }}";
                     }
                 })
                 .catch(error => {
@@ -69,33 +155,33 @@
                 });
         }
 
-        // 初回のリスト更新
         updatePlayerList();
-
-        // 1.5秒ごとにリストを更新
         setInterval(updatePlayerList, 1500);
-
-        // 1秒ごとにゲーム開始状態をチェック
         setInterval(checkGameStatus, 1000);
 
-        // ゲーム開始ボタンが押されたときの処理
         document.addEventListener('DOMContentLoaded', function () {
-            const startGameForm = document.getElementById('start-game-form'); // ゲーム開始フォーム
+            const startGameForm = document.getElementById('start-game-form');
             if (startGameForm) {
                 startGameForm.addEventListener('submit', function (event) {
-                    event.preventDefault(); // フォームのデフォルトの送信を防ぐ
-                    fetch('/start_game', { // URLを修正
-                        method: 'POST'
+                    event.preventDefault();
+                    fetch('/start_game', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            player_id: "{{ player_id }}"
+                        })
                     })
                         .then(response => {
-                            if (!response.ok) { // レスポンスが正常でない場合
+                            if (!response.ok) {
                                 throw new Error('Network response was not ok');
                             }
                             return response.json();
-                        }) // レスポンスをJSONとして解釈する
-                        .then(data => { // レスポンスデータを受け取る
-                            if (data.status === 'success') { // ゲーム開始に成功した場合
-                                window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
+                        })
+                        .then(data => {
+                            if (data.status === 'success') {
+                                window.location.href = "/game?player_id={{ player_id }}";
                             }
                         })
                         .catch(error => {
