@@ -1,3 +1,6 @@
+let currentRank = 1;
+let totalPlayers = 1;
+
 document.addEventListener('DOMContentLoaded', function () {
   let gameStarted = false;
 
@@ -178,9 +181,13 @@ const gameMain = () => {
     checkCollision();
     checkFalling();
   }
+  // 距離と順位を更新
+  updateDistanceAndRank(playerId, distance);
+
+  // UI表示を更新
   showDistance();
   showTime();
-  updateDistance(playerId, distance);
+  showRankingDisplay();
 }
 
 // ==================================================
@@ -199,4 +206,44 @@ const changeField = () => {
 const notChangeField = () => {
   drawImg(0, 0, bgOffset);
   drawImg(0, 0, bgOffset - bgHeight);
+}
+
+async function updateDistanceAndRank(playerId, distance) {
+  try {
+    // 距離を更新
+    await fetch('/api/update_distance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ player_id: playerId, distance: distance }),
+    });
+
+    // 現在の順位を取得
+    const rankResponse = await fetch('/api/current_rank', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ player_id: playerId, distance: distance }),
+    });
+
+    const rankData = await rankResponse.json();
+    currentRank = rankData.rank;
+    console.log('Rank:', );
+    totalPlayers = rankData.total_players;
+
+  } catch (error) {
+    console.error('Error updating distance and rank:', error);
+  }
+}
+
+// 順位を表示する関数
+function showRankingDisplay() {
+  // 背景の黒い矩形を描画
+  fRect(20, 20, 120, 60, "black");
+
+  // 順位テキストを描画
+  const rankText = `${currentRank}/${totalPlayers}`;
+  fText(rankText, 80, 50, 50, "white");
 }
