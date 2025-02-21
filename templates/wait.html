@@ -8,13 +8,13 @@
 </head>
 
 <body>
-    <h1 class="wait-title">ゲーム開始を待っています...</h1>
-    <div class="player-list">
-        {% for player in players %}
-        <div class="player-name">{{ player }}</div>
-        {% endfor %}
-    </div>
-    <p>プレイヤー人数: <span id="player-count">{{ players|length }}</span>人</p>
+    <h1>待機中</h1>
+    <p>参加人数: <span id="player-count">0</span>人</p>
+    <p>参加プレイヤー:</p>
+    <ul id="player-list">
+        <!-- プレイヤーリストはJavaScriptで動的に追加 -->
+    </ul>
+
     {% if player_name == admin_name %}
     <form id="start-game-form" action="javascript:void(0);" method="post">
         <input type="hidden" name="player_id" value="{{ player_id }}">
