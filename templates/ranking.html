@@ -8,21 +8,55 @@
 
 <body>
     <h1>ランキング</h1>
-    <ul id="ranking-list">
-        <!-- ランキングデータはJavaScriptで動的に追加 -->
-    </ul>
+    <table>
+        <thead>
+            <tr>
+                <th>順位</th>
+                <th>プレイヤー名</th>
+                <th>距離</th>
+            </tr>
+        </thead>
+        <tbody id="ranking-table">
+            <!-- ランキングデータはJavaScriptで動的に追加 -->
+        </tbody>
+    </table>
+
     <script>
         // ランキングデータを取得して表示する
-        fetch('/api/ranking')
-            .then(response => response.json())
-            .then(data => {
-                const rankingList = document.getElementById('ranking-list');
-                data.forEach(player => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${player.name}: ${player.distance}m`;
-                    rankingList.appendChild(listItem);
+        function updateRanking() {
+            fetch('/api/ranking')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const rankingTable = document.getElementById('ranking-table');
+                    rankingTable.innerHTML = '';
+                    data.forEach((player, index) => {
+                        const row = document.createElement('tr');
+                        const rankCell = document.createElement('td');
+                        const nameCell = document.createElement('td');
+                        const distanceCell = document.createElement('td');
+
+                        rankCell.textContent = index + 1;
+                        nameCell.textContent = player.name;
+                        distanceCell.textContent = player.distance;
+
+                        row.appendChild(rankCell);
+                        row.appendChild(nameCell);
+                        row.appendChild(distanceCell);
+                        rankingTable.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                 });
-            });
+        }
+
+        // ページが読み込まれたときにランキングを更新
+        document.addEventListener('DOMContentLoaded', updateRanking);
     </script>
 </body>
 

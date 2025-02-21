@@ -4,11 +4,12 @@ from . import db
 
 
 class Player(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    player_id = db.Column(db.String(10), unique=True, nullable=False)  # プレイヤーID
+    player_id = db.Column(
+        db.String(10), primary_key=True, unique=True, nullable=False
+    )  # プレイヤーID
     name = db.Column(db.String(100), nullable=False)
     distance = db.Column(db.Float, default=0.0)  # プレイヤーの進行距離
-    is_active = db.Column(db.Boolean, default=True)  # プレイヤーがゲーム中かどうか
+    game_started = db.Column(db.Boolean, default=False)  # ゲームが開始されたかどうか
 
 
 def generate_unique_player_id():

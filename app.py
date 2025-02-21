@@ -17,9 +17,8 @@ migrate = Migrate(app, db)  # Flask-Migrateの設定
 
 if env == "development":
     with app.app_context():
-        # データベースをドロップして再作成（開発環境のみ）
-        db.drop_all()
+        db.drop_all()  # SQLiteのデータベースファイルを削除
         db.create_all()  # SQLiteのデータベースファイルを作成
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)  # スレッドを有効にして実行
+    app.run(debug=config[env].DEBUG, threaded=True)

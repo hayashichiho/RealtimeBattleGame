@@ -573,9 +573,9 @@ function wwsSysMain() {
 	//ブラウザのサイズが変化したか？（スマホなら持ち方を変えたか　縦持ち⇔横持ち）
 	if(bakW != window.innerWidth || bakH != window.innerHeight) initCanvas();
 
-	main_tmr ++;
-	
-	switch(main_idx) {
+    main_tmr++;
+
+    switch (main_idx) {
 
 	case 0://初期化
 	setup();
