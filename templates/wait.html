@@ -8,19 +8,21 @@
 </head>
 
 <body>
-    <h1>待機中</h1>
-    <p>参加人数: <span id="player-count">0</span>人</p>
-    <p>参加プレイヤー:</p>
-    <ul id="player-list">
-        <!-- プレイヤーリストはJavaScriptで動的に追加 -->
-    </ul>
+    <div class="wait-container">
+        <h1 class="wait-title">待機中</h1>
+        <p class="wait-message">参加人数: <span id="player-count">0</span>人</p>
+        <p class="wait-message">参加プレイヤー:</p>
+        <ul id="player-list">
+            <!-- プレイヤーリストはJavaScriptで動的に追加 -->
+        </ul>
 
-    {% if player_name == admin_name %}
-    <form id="start-game-form" action="javascript:void(0);" method="post">
-        <input type="hidden" name="player_id" value="{{ player_id }}">
-        <button type="submit">ゲーム開始</button>
-    </form>
-    {% endif %}
+        {% if player_name == admin_name %}
+        <form id="start-game-form" action="javascript:void(0);" method="post">
+            <input type="hidden" name="player_id" value="{{ player_id }}">
+            <button type="submit" class="start-game-btn">ゲーム開始</button>
+        </form>
+        {% endif %}
+    </div>
 
     <script>
         // プレイヤーリストを更新する
@@ -83,7 +85,13 @@
                 startGameForm.addEventListener('submit', function (event) {
                     event.preventDefault(); // フォームのデフォルトの送信を防ぐ
                     fetch('/start_game', { // URLを修正
-                        method: 'POST'
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            player_id: "{{ player_id }}"
+                        })
                     })
                         .then(response => {
                             if (!response.ok) {

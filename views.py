@@ -166,7 +166,7 @@ game_end_time = None
 def start_game():
     global game_start_time, game_end_time
     game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
-    game_end_time = game_start_time + timedelta(seconds=25)  # 1分後にゲーム終了
+    game_end_time = game_start_time + timedelta(seconds=68)  # 1分後にゲーム終了
     Player.query.update({Player.game_started: True})
     db.session.commit()
     return jsonify(
