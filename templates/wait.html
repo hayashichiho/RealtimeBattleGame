@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>待機画面</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
@@ -76,25 +77,30 @@
         setInterval(checkGameStatus, 1000);
 
         // ゲーム開始ボタンが押されたときの処理
-        document.getElementById('start-game-form').addEventListener('submit', function (event) {
-            event.preventDefault(); // フォームのデフォルトの送信を防ぐ
-            fetch('/start_game', { // URLを修正
-                method: 'POST'
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                }) // レスポンスをJSONとして解釈する
-                .then(data => { // レスポンスデータを受け取る
-                    if (data.status === 'success') { // ゲーム開始に成功した場合
-                        window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+        document.addEventListener('DOMContentLoaded', function () {
+            const startGameForm = document.getElementById('start-game-form');
+            if (startGameForm) {
+                startGameForm.addEventListener('submit', function (event) {
+                    event.preventDefault(); // フォームのデフォルトの送信を防ぐ
+                    fetch('/start_game', { // URLを修正
+                        method: 'POST'
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        }) // レスポンスをJSONとして解釈する
+                        .then(data => { // レスポンスデータを受け取る
+                            if (data.status === 'success') { // ゲーム開始に成功した場合
+                                window.location.href = "/game?player_id={{ player_id }}"; // ゲーム画面にリダイレクト
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 });
+            }
         });
     </script>
 </body>

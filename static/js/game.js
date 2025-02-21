@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   let gameStarted = false;
+  let gameEnded = false;
 
   function startGame() {
     console.log("startGame called");
@@ -10,19 +11,97 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("ゲームが開始されました！");
   }
 
+  function endGame() {
+    console.log("endGame called");
+    idx = 2; // ゲーム終了画面に遷移
+    tmr = 0;
+    stopBgm();
+    console.log("ゲームが終了しました！");
+    showRanking(); // ランキングを表示
+  }
+
+  function showRanking() {
+    fetch('/api/ranking')
+      .then(response => response.json())
+      .then(data => {
+        console.log("Ranking:", data);
+        // ランキングを表示する処理を追加
+        const rankingContainer = document.getElementById('ranking-container');
+        rankingContainer.innerHTML = '<h2>ランキング</h2>';
+        const rankingList = document.createElement('ul');
+        data.forEach(player => {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${player.name}: ${player.distance}m`;
+          rankingList.appendChild(listItem);
+        });
+        rankingContainer.appendChild(rankingList);
+      })
+      .catch(error => {
+        console.error('Error fetching ranking:', error);
+      });
+  }
+
   function checkGameStatus() {
     console.log("checkGameStatus called");
     fetch('/api/game_status')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(data => {
         console.log("game_status response:", data);
         if (data.game_started && !gameStarted) {
           gameStarted = true;
-          startGame();
+          fetch('/api/game_times')
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(gameTimes => {
+              fetch('/api/current_time')
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                  }
+                  return response.json();
+                })
+                .then(currentTimeData => {
+                  const serverCurrentTime = new Date(currentTimeData.current_time);
+                  const startTime = new Date(gameTimes.start_time);
+                  const endTime = new Date(gameTimes.end_time);
+                  const startDelay = startTime - serverCurrentTime;
+                  const endDelay = endTime - serverCurrentTime;
+                  console.log("startDelay:", startDelay);
+                  console.log("endDelay:", endDelay);
+                  console.log("startTime:", startTime);
+                  console.log("endTime:", endTime);
+                  console.log("serverCurrentTime:", serverCurrentTime);
+                  if (startDelay > 0) {
+                    setTimeout(startGame, startDelay);
+                  } else {
+                    startGame();
+                  }
+                  if (endDelay > 0) {
+                    setTimeout(endGame, endDelay);
+                  } else {
+                    endGame();
+                  }
+                })
+                .catch(error => {
+                  console.error('Error fetching current time:', error);
+                });
+            })
+            .catch(error => {
+              console.error('Error fetching game times:', error);
+            });
         }
       })
       .catch(error => {
-        console.error('Error:', error);
+        console.error('Error fetching game status:', error);
       });
   }
 
@@ -40,12 +119,12 @@ function mainloop() {
         idx = 2;
         tmr = 0;
         stopBgm();
+        showRanking(); // ランキングを表示
       }
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
       endGame(playerId);
-      showRanking();
       break;
   }
 }
