@@ -9,15 +9,14 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from sqlalchemy.future import select
 
-from . import app, db
+from . import app, async_session, db
 from .models import Player, generate_unique_player_id
 
-game_start_time = None
-
-game_start_time = None
-game_end_time = None
-lock = threading.Lock()
+game_start_time = None  # ゲーム開始時刻
+game_end_time = None  # ゲーム終了時刻
+lock = threading.Lock()  # ロックオブジェクト
 
 
 @app.route("/api/game_times", methods=["GET"])
@@ -52,7 +51,7 @@ def get_ranking():
             {
                 "player_id": player.player_id,
                 "name": player.name,
-                "distance": player.distance * 4 / 100,  # 距離を4/100倍にして表示
+                "distance": player.distance * 4 / 100,  # 距離を4倍にして表示
             }
             for player in players
         ]
@@ -60,52 +59,63 @@ def get_ranking():
 
 
 @app.route("/api/update_distance", methods=["POST"])  # 距離を更新する処理
-def update_distance():
+async def update_distance():
     data = request.get_json()  # リクエストのJSONデータを取得
     player_id = data.get("player_id")  # プレイヤーIDを取得
     distance = data.get("distance")  # 距離を取得
 
-    try:
-        db.session.begin(subtransactions=True)  # トランザクションを開始
-        player = Player.query.filter_by(player_id=player_id).first()  # プレイヤーを取得
-        if player:
-            player.distance = distance  # 距離を更新
-            db.session.commit()  # コミット
-            return jsonify({"status": "success"}), 200  # 成功時のレスポンス
-        else:
-            db.session.rollback()  # ロールバック
-            return jsonify(
-                {"status": "error", "message": "Player not found"}
-            ), 404  # 失敗時のレスポンス
-    except Exception as e:
-        db.session.rollback()  # ロールバック
-        return jsonify(
-            {"status": "error", "message": str(e)}
-        ), 500  # 失敗時のレスポンス
+    async with async_session() as session:
+        async with session.begin():
+            try:
+                result = await session.execute(
+                    select(Player).filter_by(player_id=player_id)
+                )
+                player = result.scalars().first()  # プレイヤーを取得
+                if player:
+                    player.distance = distance  # 距離を更新
+                    await session.commit()  # コミット
+                    return jsonify({"status": "success"}), 200  # 成功時のレスポンス
+                else:
+                    await session.rollback()  # ロールバック
+                    return jsonify(
+                        {"status": "error", "message": "Player not found"}
+                    ), 404  # 失敗時のレスポンス
+            except Exception as e:
+                await session.rollback()  # ロールバック
+                app.logger.error(
+                    f"Error updating distance: {str(e)}"
+                )  # エラーメッセージをログに出力
+                return jsonify(
+                    {"status": "error", "message": str(e)}
+                ), 500  # 失敗時のレスポンス
 
 
 @app.route("/api/end_game", methods=["POST"])  # ゲームを終了する処理
-def end_game():
+async def end_game():
     data = request.get_json()  # リクエストのJSONデータを取得
     player_id = data.get("player_id")  # プレイヤーIDを取得
 
-    try:
-        db.session.begin(subtransactions=True)  # トランザクションを開始
-        player = Player.query.filter_by(player_id=player_id).first()  # プレイヤーを取得
-        if player:
-            player.game_started = False  # ゲームを終了
-            db.session.commit()  # コミット
-            return jsonify({"status": "success"}), 200  # 成功時のレスポンス
-        else:
-            db.session.rollback()  # ロールバック
-            return jsonify(
-                {"status": "error", "message": "Player not found"}
-            ), 404  # 失敗時のレスポンス
-    except Exception as e:
-        db.session.rollback()  # ロールバック
-        return jsonify(
-            {"status": "error", "message": str(e)}
-        ), 500  # 失敗時のレスポンス
+    async with async_session() as session:
+        async with session.begin():
+            try:
+                result = await session.execute(
+                    select(Player).filter_by(player_id=player_id)
+                )
+                player = result.scalars().first()  # プレイヤーを取得
+                if player:
+                    player.game_started = False  # ゲームを終了
+                    await session.commit()  # コミット
+                    return jsonify({"status": "success"}), 200  # 成功時のレスポンス
+                else:
+                    await session.rollback()  # ロールバック
+                    return jsonify(
+                        {"status": "error", "message": "Player not found"}
+                    ), 404  # 失敗時のレスポンス
+            except Exception as e:
+                await session.rollback()  # ロールバック
+                return jsonify(
+                    {"status": "error", "message": str(e)}
+                ), 500  # 失敗時のレスポンス
 
 
 @app.route("/game")  # ゲーム開始時の処理
@@ -166,7 +176,7 @@ game_end_time = None
 def start_game():
     global game_start_time, game_end_time
     game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
-    game_end_time = game_start_time + timedelta(seconds=68)  # 1分後にゲーム終了
+    game_end_time = game_start_time + timedelta(seconds=15)  # 15秒後にゲーム終了
     Player.query.update({Player.game_started: True})
     db.session.commit()
     return jsonify(

@@ -1,9 +1,10 @@
+// 敵を生成・管理するスクリプト
 function updateEnemies() {
     enemies.forEach(e => {
         e.y += scrollSpeed;
-    });
+    }); // 敵をスクロール
 
-    enemies = enemies.filter(e => e.y < bgHeight);
+    enemies = enemies.filter(e => e.y < bgHeight); // 画面外の敵を削除
 
     let currentRow = Math.floor(distance / 200);
     if (currentRow > enemyRowCounter) {
@@ -21,6 +22,7 @@ function updateEnemies() {
     });
 }
 
+// 敵行を生成
 function spawnEnemyRow(rowY, stage) {
     let rowEnemies = [];
     if (stage === 1) {
