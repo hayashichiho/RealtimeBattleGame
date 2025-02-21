@@ -64,8 +64,8 @@ async def update_distance():
     player_id = data.get("player_id")  # プレイヤーIDを取得
     distance = data.get("distance")  # 距離を取得
 
-    async with async_session() as session:
-        async with session.begin():
+    async with async_session() as session:  # セッションを開始
+        async with session.begin():  # トランザクションを開始
             try:
                 result = await session.execute(
                     select(Player).filter_by(player_id=player_id)
@@ -95,12 +95,12 @@ async def end_game():
     data = request.get_json()  # リクエストのJSONデータを取得
     player_id = data.get("player_id")  # プレイヤーIDを取得
 
-    async with async_session() as session:
-        async with session.begin():
+    async with async_session() as session:  # セッションを開始
+        async with session.begin():  # トランザクションを開始
             try:
                 result = await session.execute(
                     select(Player).filter_by(player_id=player_id)
-                )
+                )  # プレイヤーを取得
                 player = result.scalars().first()  # プレイヤーを取得
                 if player:
                     player.game_started = False  # ゲームを終了
@@ -176,7 +176,7 @@ game_end_time = None
 def start_game():
     global game_start_time, game_end_time
     game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
-    game_end_time = game_start_time + timedelta(seconds=15)  # 15秒後にゲーム終了
+    game_end_time = game_start_time + timedelta(seconds=128)  # 2.1分後にゲーム終了
     Player.query.update({Player.game_started: True})
     db.session.commit()
     return jsonify(
