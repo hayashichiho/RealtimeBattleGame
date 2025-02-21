@@ -4,3 +4,6 @@ Flask-SQLAlchemy==2.5.1
 gunicorn==20.1.0
 werkzeug==2.0.3
 SQLAlchemy==1.4.25
+aiosqlite==0.17.0
+asgiref==3.4.1
+flask[async]==2.0.3
