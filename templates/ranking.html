@@ -33,21 +33,21 @@
                 })
                 .then(data => {
                     const rankingTable = document.getElementById('ranking-table');
-                    rankingTable.innerHTML = '';
+                    rankingTable.innerHTML = ''; // テーブルを初期化
                     data.forEach((player, index) => {
-                        const row = document.createElement('tr');
-                        const rankCell = document.createElement('td');
-                        const nameCell = document.createElement('td');
-                        const distanceCell = document.createElement('td');
+                        const row = document.createElement('tr'); // 行を作成
+                        const rankCell = document.createElement('td'); // 順位セルを作成
+                        const nameCell = document.createElement('td'); // プレイヤー名セルを作成
+                        const distanceCell = document.createElement('td'); // 距離セルを作成
 
-                        rankCell.textContent = index + 1;
-                        nameCell.textContent = player.name;
-                        distanceCell.textContent = player.distance;
+                        rankCell.textContent = index + 1; // 順位は0から始まるので+1する
+                        nameCell.textContent = player.name; // プレイヤー名をセット
+                        distanceCell.textContent = player.distance; // 距離をセット
 
-                        row.appendChild(rankCell);
-                        row.appendChild(nameCell);
-                        row.appendChild(distanceCell);
-                        rankingTable.appendChild(row);
+                        row.appendChild(rankCell); // セルを行に追加
+                        row.appendChild(nameCell); // セルを行に追加
+                        row.appendChild(distanceCell); // セルを行に追加
+                        rankingTable.appendChild(row); // 行をテーブルに追加
                     });
                 })
                 .catch(error => {
