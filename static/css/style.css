@@ -103,7 +103,7 @@ canvas {
     }
 }
 
-/* Wait page specific styles */
+
 .wait-container {
     display: flex;
     flex-direction: column;
@@ -143,6 +143,7 @@ canvas {
     color: #333;
 }
 
+/* ゲーム開始ボタンのスタイル */
 .start-game-btn {
     display: inline-block;
     padding: 15px 30px;
@@ -153,8 +154,5 @@ canvas {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.start-game-btn:hover {
-    background-color: #0a7a2a;
+    margin-top: 20px;
 }

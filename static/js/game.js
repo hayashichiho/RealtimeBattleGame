@@ -177,7 +177,7 @@ const gameMain = () => {
   } else {
     updateEnemies();
     changeField();
-    setEnemy(); 
+    setEnemy();
     personWalk();
     checkCollision();
     checkFalling();
