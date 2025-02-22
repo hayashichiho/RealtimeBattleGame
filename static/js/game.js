@@ -208,33 +208,43 @@ const notChangeField = () => {
   drawImg(0, 0, bgOffset - bgHeight);
 }
 
+// 最適化された距離と順位の更新関数
 async function updateDistanceAndRank(playerId, distance) {
+  if(tmr % 30 !== 0) {
+    return
+  }
+  
   try {
-    // 距離を更新
-    await fetch('/api/update_distance', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ player_id: playerId, distance: distance }),
-    });
+      // 距離を更新
+      await fetch('/api/update_distance', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ player_id: playerId, distance: distance }),
+      });
 
-    // 現在の順位を取得
-    const rankResponse = await fetch('/api/current_rank', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ player_id: playerId, distance: distance }),
-    });
+      // 順位を取得
+      const rankResponse = await fetch('/api/current_rank', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ player_id: playerId, distance: distance }),
+      });
 
-    const rankData = await rankResponse.json();
-    currentRank = rankData.rank;
-    console.log('Rank:', );
-    totalPlayers = rankData.total_players;
+      if (!rankResponse.ok) {
+          throw new Error('Rank fetch failed');
+      }
+
+      const rankData = await rankResponse.json();
+      currentRank = rankData.rank;
+      totalPlayers = rankData.total_players;
+      
+      console.log('Current rank:', currentRank, 'Total players:', totalPlayers);
 
   } catch (error) {
-    console.error('Error updating distance and rank:', error);
+      console.error('Error updating distance and rank:', error);
   }
 }
 

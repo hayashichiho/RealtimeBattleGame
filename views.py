@@ -56,6 +56,37 @@ def get_ranking():
             for player in players
         ]
     )
+    
+# Flask側に追加するエンドポイント
+@app.route("/api/current_rank", methods=["POST"])
+async def get_current_rank():
+    data = request.get_json()
+    player_id = data.get("player_id")
+    
+    async with async_session() as session:
+        async with session.begin():
+            try:
+                # 全プレイヤーを距離でソート
+                result = await session.execute(
+                    select(Player).order_by(Player.distance.desc())
+                )
+                players = result.scalars().all()
+                
+                # 現在のプレイヤーの順位を計算
+                total_players = len(players)
+                current_rank = next(
+                    (i + 1 for i, p in enumerate(players) if p.player_id == player_id),
+                    total_players
+                )
+                
+                return jsonify({
+                    "rank": current_rank,
+                    "total_players": total_players
+                }), 200
+                
+            except Exception as e:
+                app.logger.error(f"Error getting rank: {str(e)}")
+                return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/api/update_distance", methods=["POST"])  # 距離を更新する処理
