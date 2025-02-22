@@ -37,6 +37,7 @@ function resetGame() {
     stage = 0;
     isCrying = false;
     isFalling = false;
+    isEnd = false;
 }
 
 document.addEventListener('DOMContentLoaded', setup);

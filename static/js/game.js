@@ -1,47 +1,28 @@
 let currentRank = 1;
 let totalPlayers = 1;
+let playerDistances = [];  // 全プレイヤーの距離情報
+let globalRankingData = null;
+
+function startGame() {
+  console.log("startGame called");
+  resetGame(); // ゲーム状態をリセット
+  idx = 1;     // ゲームメインに遷移
+  tmr = 0;
+  playBgm(0);
+  console.log("ゲームが開始されました！");
+}
+
+function endGame() {
+  console.log("endGame called");
+  idx = 2; // ゲーム終了画面に遷移
+  tmr = 0;
+  stopBgm();
+  console.log("ゲームが終了しました！");
+  showRanking(); // ランキングを表示
+}
 
 document.addEventListener('DOMContentLoaded', function () {
   let gameStarted = false;
-
-  function startGame() {
-    console.log("startGame called");
-    resetGame(); // ゲーム状態をリセット
-    idx = 1;     // ゲームメインに遷移
-    tmr = 0;
-    playBgm(0);
-    console.log("ゲームが開始されました！");
-  }
-
-  function endGame() {
-    console.log("endGame called");
-    idx = 2; // ゲーム終了画面に遷移
-    tmr = 0;
-    stopBgm();
-    console.log("ゲームが終了しました！");
-    showRanking(); // ランキングを表示
-  }
-
-  function showRanking() {
-    fetch('/api/ranking')
-      .then(response => response.json())
-      .then(data => {
-        console.log("Ranking:", data);
-        // ランキングを表示する処理を追加
-        const rankingContainer = document.getElementById('ranking-container');
-        rankingContainer.innerHTML = '<h2>ランキング</h2>';
-        const rankingList = document.createElement('ul');
-        data.forEach(player => {
-          const listItem = document.createElement('li');
-          listItem.textContent = `${player.name}: ${player.distance}m`;
-          rankingList.appendChild(listItem);
-        });
-        rankingContainer.appendChild(rankingList);
-      })
-      .catch(error => {
-        console.error('Error fetching ranking:', error);
-      });
-  }
 
   // ゲーム状態を定期的にチェック
   function checkGameStatus() {
@@ -122,13 +103,73 @@ function mainloop() {
         idx = 2;
         tmr = 0;
         stopBgm();
-        showRanking(); // ランキングを表示
+        endGameAndShowRanking(); // 新しい関数を呼び出し
       }
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
-      endGame(playerId);
+      showRankingScreen(); // 新しい関数を呼び出し
       break;
+  }
+}
+
+// 新しい関数: ゲーム終了処理とランキング表示を統合
+async function endGameAndShowRanking() {
+  try {
+    // 最終スコアを送信
+    await fetch('/api/update_distance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        player_id: playerId,
+        distance: distance * 0.04,
+        is_final: true
+      }),
+    });
+
+    // ゲーム終了を通知
+    await fetch('/api/end_game', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ player_id: playerId }),
+    });
+
+    // ランキングデータを取得
+    const response = await fetch('/api/ranking');
+    const rankingData = await response.json();
+
+    // グローバル変数にランキングデータを保存
+    globalRankingData = rankingData;
+
+  } catch (error) {
+    console.error('Error in endGameAndShowRanking:', error);
+  }
+}
+
+// 新しい関数: ランキング画面の表示
+function showRankingScreen() {
+  // 背景を暗く
+  setAlp(50);
+  fRect(0, 0, CWIDTH, CHEIGHT, "black");
+  setAlp(100);
+
+  // ランキングタイトル
+  fText("ゲーム終了!", CWIDTH / 2, 100, 50, "yellow");
+  fText("ランキング", CWIDTH / 2, 180, 40, "white");
+
+  // ランキングデータの表示
+  if (globalRankingData && globalRankingData.length > 0) {
+    globalRankingData.forEach((player, index) => {
+      const color = player.player_id === playerId ? "yellow" : "white";
+      const text = `${index + 1}位: ${player.name} - ${player.distance}m`;
+      fText(text, CWIDTH / 2, 250 + index * 50, 30, color);
+    });
+  } else {
+    fText("ランキングデータを読み込み中...", CWIDTH / 2, 300, 30, "white");
   }
 }
 
@@ -181,13 +222,13 @@ const gameMain = () => {
     checkCollision();
     checkFalling();
   }
-  // 距離と順位を更新
-  updateDistanceAndRank(playerId, distance);
 
+  updateDistanceAndRank(playerId, distance);// 距離と順位を更新
   // UI表示を更新
   showDistance();
   showTime();
   showRankingDisplay();
+  showDistanceMap();
 }
 
 // ==================================================
@@ -208,7 +249,10 @@ const notChangeField = () => {
   drawImg(0, 0, bgOffset - bgHeight);
 }
 
+// 距離と順位を更新する関数
 async function updateDistanceAndRank(playerId, distance) {
+  if (tmr % 15 !== 0) return; // 15フレームに1回のみ更新
+
   try {
     // 距離を更新
     await fetch('/api/update_distance', {
@@ -219,22 +263,65 @@ async function updateDistanceAndRank(playerId, distance) {
       body: JSON.stringify({ player_id: playerId, distance: distance }),
     });
 
-    // 現在の順位を取得
-    const rankResponse = await fetch('/api/current_rank', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ player_id: playerId, distance: distance }),
-    });
+    // 全プレイヤーの距離情報を取得
+    const playersResponse = await fetch('/api/players');
+    if (!playersResponse.ok) {
+      throw new Error('Players fetch failed');
+    }
 
-    const rankData = await rankResponse.json();
-    currentRank = rankData.rank;
-    console.log('Rank:', );
-    totalPlayers = rankData.total_players;
+    const players = await playersResponse.json();
+    // 距離でソート（降順）
+    playerDistances = players.sort((a, b) => b.distance - a.distance);
+
+    // 現在の順位と総プレイヤー数を更新
+    currentRank = playerDistances.findIndex(p => p.player_id === playerId) + 1;
+    totalPlayers = playerDistances.length;
 
   } catch (error) {
     console.error('Error updating distance and rank:', error);
+  }
+}
+
+function showDistanceMap() {
+  const MAP_HEIGHT = 300;  // マップの高さを300pxに拡大
+  const MAP_WIDTH = 40;    // マップの幅を40pxに拡大
+  const MARKER_SIZE = 10;  // マーカーサイズを10pxに拡大
+  const X_POSITION = 20;   // X座標の開始位置は維持
+
+  // 背景の黒い矩形を描画
+  fRect(X_POSITION - 5, 80, MAP_WIDTH + 10, MAP_HEIGHT + 10, "black");
+
+  // プレイヤーが存在する場合のみ描画
+  if (playerDistances.length > 0) {
+    // 最大距離と最小距離を取得
+    const maxDistance = Math.max(...playerDistances.map(p => p.distance));
+    const minDistance = Math.min(...playerDistances.map(p => p.distance));
+    const distanceRange = maxDistance - minDistance;
+
+    // 各プレイヤーの位置を描画
+    playerDistances.forEach((player, index) => {
+      // Y座標を計算（距離に応じて位置を決定）
+      const normalizedDistance = (player.distance - minDistance) / distanceRange;
+      const y = 85 + (MAP_HEIGHT - 10) * (1 - normalizedDistance);
+
+      if (player.player_id === playerId) {
+        // 自分の位置を赤い三角で表示
+        const triangleHeight = 20;  // 三角形の高さを20pxに拡大
+        const triangleWidth = 16;   // 三角形の幅を16pxに拡大
+        fTri(
+          X_POSITION + MAP_WIDTH / 2, y - triangleHeight / 2,  // 頂点
+          X_POSITION + MAP_WIDTH / 2 - triangleWidth / 2, y + triangleHeight / 2,  // 左下
+          X_POSITION + MAP_WIDTH / 2 + triangleWidth / 2, y + triangleHeight / 2,  // 右下
+          "red"
+        );
+      } else {
+        // 他プレイヤーを白い円で表示
+        bg.beginPath();
+        bg.fillStyle = "white";
+        bg.arc(X_POSITION + MAP_WIDTH / 2, y, MARKER_SIZE / 2, 0, Math.PI * 2);
+        bg.fill();
+      }
+    });
   }
 }
 
@@ -246,4 +333,41 @@ function showRankingDisplay() {
   // 順位テキストを描画
   const rankText = `${currentRank}/${totalPlayers}`;
   fText(rankText, 80, 50, 50, "white");
+}
+
+function showRanking() {
+  // まずDOM要素の存在確認
+  const rankingContainer = document.getElementById('ranking-container');
+  if (!rankingContainer) {
+    console.error('Ranking container not found!');
+    return;
+  }
+
+  fetch('/api/ranking')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Ranking:", data);
+      if (!data || data.length === 0) {
+        rankingContainer.innerHTML = '<h2>ランキング</h2><p>データがありません</p>';
+        return;
+      }
+
+      rankingContainer.innerHTML = '<h2>ランキング</h2>';
+      const rankingList = document.createElement('ul');
+      data.forEach(player => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${player.name}: ${player.distance}m`;
+        rankingList.appendChild(listItem);
+      });
+      rankingContainer.appendChild(rankingList);
+    })
+    .catch(error => {
+      console.error('Error fetching ranking:', error);
+      rankingContainer.innerHTML = '<h2>ランキング</h2><p>ランキングの取得に失敗しました</p>';
+    });
 }
