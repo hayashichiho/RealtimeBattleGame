@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-    <title>ドリブルゲーム</title>
+    <title>障害物ゲーム</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -108,19 +109,15 @@
 <body>
     <div class="container game-container">
         <h1 class="title text-center display-4">障害物ゲーム</h1>
-        
+
         <div class="input-container">
             <form action="{{ url_for('login') }}" method="post" class="needs-validation" novalidate>
                 <div class="mb-1">
                     <div class="invalid-feedback">
-                        プレイヤー名を入力してください
+                        名前を入力してください
                     </div>
-                    <input type="text" 
-                           class="form-control custom-input" 
-                           id="playerName" 
-                           name="name" 
-                           placeholder="プレイヤー名を入力"
-                           required>
+                    <input type="text" class="form-control custom-input" id="playerName" name="name" placeholder="名前を入力"
+                        required>
                 </div>
                 <div class="mb-1 text-center">
                     <button type="submit" class="btn custom-button w-30 text-white">送信</button>
@@ -131,18 +128,21 @@
         <div class="rules-card">
             <h2 class="h4 text-center mb-3">ゲームルール / Game Rules</h2>
             <img src="../static/images/login.jpg" class="img-fluid rounded mb-3" alt="ゲーム画面">
-            
+
             <ul class="nav nav-tabs" id="rulesTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="japanese-tab" data-bs-toggle="tab" data-bs-target="#japanese" type="button" role="tab" aria-controls="japanese" aria-selected="true">日本語</button>
+                    <button class="nav-link active" id="japanese-tab" data-bs-toggle="tab" data-bs-target="#japanese"
+                        type="button" role="tab" aria-controls="japanese" aria-selected="true">日本語</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab" aria-controls="english" aria-selected="false">English</button>
+                    <button class="nav-link" id="english-tab" data-bs-toggle="tab" data-bs-target="#english"
+                        type="button" role="tab" aria-controls="english" aria-selected="false">English</button>
                 </li>
             </ul>
 
             <div class="tab-content" id="rulesTabContent">
-                <div class="tab-pane fade show active rules-content" id="japanese" role="tabpanel" aria-labelledby="japanese-tab">
+                <div class="tab-pane fade show active rules-content" id="japanese" role="tabpanel"
+                    aria-labelledby="japanese-tab">
                     <h4 class="mb-3">2分間で一番進めるのは誰だ！</h4>
                     <ul class="rules-list">
                         <li>画面タップで進行方向を切り替え</li>
@@ -188,4 +188,5 @@
         </div>
     </noscript>
 </body>
+
 </html>
