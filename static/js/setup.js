@@ -1,5 +1,6 @@
 let getStarSound;
 let collisionSound;
+let fallingSound;
 
 function setup() {
     const urlParams = new URLSearchParams(window.location.search); // URLパラメータを取得
@@ -21,6 +22,7 @@ function setup() {
     // 音声ファイルを事前に読み込む
     getStarSound = new Audio('static/sounds/getstar.mp3');
     collisionSound = new Audio('static/sounds/collision.mp3');
+    fallingSound = new Audio('static/sounds/falling.mp3');
 
     // 最初のタイミングで画面下部に必要な敵行を生成
     updateEnemies();

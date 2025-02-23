@@ -36,6 +36,7 @@ const personWalk = () => {
 }
 let isPlayingGetStarSound = false;
 let isPlayingCollisionSound = false;
+let isPlayingFallingSound = false;
 
 // スターを取った瞬間に音を再生する関数
 function playGetStarSound() {
@@ -55,6 +56,17 @@ function playCollisionSound() {
         collisionSound.play();
         collisionSound.onended = () => {
             isPlayingCollisionSound = false;
+        };
+    }
+}
+
+// 落下した瞬間に音を再生する関数
+function playFallingSound() {
+    if (!isPlayingFallingSound) {
+        isPlayingFallingSound = true;
+        fallingSound.play();
+        fallingSound.onended = () => {
+            isPlayingFallingSound = false;
         };
     }
 }
@@ -87,6 +99,7 @@ const checkFalling = () => {
         fallDir = personX < 30 ? 1 : -1;
         isFalling = true;
         fallTimer = 0;
+        playFallingSound();
         invincibleTimer = INVINCIBLE_TIME;
     }
 }

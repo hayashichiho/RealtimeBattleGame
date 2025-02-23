@@ -25,24 +25,3 @@ async function updateDistance(playerId, distance) {
         console.error('Error updating distance:', error);
     }
 }
-
-// ゲーム終了時に呼び出す関数
-// function endGame(playerId) {
-//     fetch('/api/end_game', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({ player_id: playerId }),
-//     });
-// }
-
-// ランキングを表示するための関数
-// function showRanking() {
-//     fetch('/api/ranking')
-//         .then(response => response.json())
-//         .then(data => {
-//             console.log(data);
-//             window.location.href = '/ranking';
-//         });
-// }
