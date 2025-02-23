@@ -8,7 +8,6 @@ function startGame() {
   resetGame(); // ゲーム状態をリセット
   idx = 1;     // ゲームメインに遷移
   tmr = 0;
-  playBgm(0);
   console.log("ゲームが開始されました！");
 }
 
@@ -16,9 +15,8 @@ function endGame() {
   console.log("endGame called");
   idx = 2; // ゲーム終了画面に遷移
   tmr = 0;
-  stopBgm();
   console.log("ゲームが終了しました！");
-  showRanking(); // ランキングを表示
+  endGameAndShowRanking(); // ランキングを表示
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -56,23 +54,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(currentTimeData => {
                   const serverCurrentTime = new Date(currentTimeData.current_time);
                   const startTime = new Date(gameTimes.start_time);
-                  const endTime = new Date(gameTimes.end_time);
                   const startDelay = startTime - serverCurrentTime;
-                  const endDelay = endTime - serverCurrentTime;
                   console.log("startDelay:", startDelay);
-                  console.log("endDelay:", endDelay);
                   console.log("startTime:", startTime);
-                  console.log("endTime:", endTime);
                   console.log("serverCurrentTime:", serverCurrentTime);
                   if (startDelay > 0) {
                     setTimeout(startGame, startDelay);
                   } else {
                     startGame();
-                  }
-                  if (endDelay > 0) {
-                    setTimeout(endGame, endDelay);
-                  } else {
-                    endGame();
                   }
                 })
                 .catch(error => {
@@ -102,13 +91,12 @@ function mainloop() {
       if (tmr >= MAX_FRAME) { // ゲーム終了
         idx = 2;
         tmr = 0;
-        stopBgm();
         endGameAndShowRanking(); // 新しい関数を呼び出し
       }
       break;
 
     case 2: // ゲーム終了画面(結果を出力させる)
-      showRankingScreen(); // 新しい関数を呼び出し
+      // ランキングページにリダイレクトするため、このケースは不要
       break;
   }
 }
@@ -135,41 +123,14 @@ async function endGameAndShowRanking() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ player_id: playerId }),
+      body: JSON.stringify({ player_id: playerId }), // プレイヤーIDを送信
     });
 
-    // ランキングデータを取得
-    const response = await fetch('/api/ranking');
-    const rankingData = await response.json();
-
-    // グローバル変数にランキングデータを保存
-    globalRankingData = rankingData;
+    // ランキングを取得して表示
+    window.location.href = '/ranking';
 
   } catch (error) {
     console.error('Error in endGameAndShowRanking:', error);
-  }
-}
-
-// 新しい関数: ランキング画面の表示
-function showRankingScreen() {
-  // 背景を暗く
-  setAlp(50);
-  fRect(0, 0, CWIDTH, CHEIGHT, "black");
-  setAlp(100);
-
-  // ランキングタイトル
-  fText("ゲーム終了!", CWIDTH / 2, 100, 50, "yellow");
-  fText("ランキング", CWIDTH / 2, 180, 40, "white");
-
-  // ランキングデータの表示
-  if (globalRankingData && globalRankingData.length > 0) {
-    globalRankingData.forEach((player, index) => {
-      const color = player.player_id === playerId ? "yellow" : "white";
-      const text = `${index + 1}位: ${player.name} - ${player.distance}m`;
-      fText(text, CWIDTH / 2, 250 + index * 50, 30, color);
-    });
-  } else {
-    fText("ランキングデータを読み込み中...", CWIDTH / 2, 300, 30, "white");
   }
 }
 
@@ -182,8 +143,7 @@ const gameMain = () => {
   if (starTimer > 0) {
     starTimer--;
     if (starTimer === 0) {
-      stopBgm();
-      playBgm(0);
+      playGetStarSound(); // スターを取った瞬間に音を再生
     }
   }
 
@@ -260,7 +220,7 @@ async function updateDistanceAndRank(playerId, distance) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ player_id: playerId, distance: distance }),
+      body: JSON.stringify({ player_id: playerId, distance: distance * 0.04 }),
     });
 
     // 全プレイヤーの距離情報を取得

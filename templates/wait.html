@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>待機画面</title>
@@ -77,6 +78,24 @@
             margin-bottom: 1rem;
         }
 
+        .admin-controls {
+            background-color: #0c9a34;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: white;
+            width: auto;
+            min-width: 200px;
+        }
+
+        .admin-controls:hover {
+            background-color: #097a2a;
+            transform: translateY(-2px);
+        }
+
+
         @media (max-width: 576px) {
             .wait-container {
                 width: 95%;
@@ -104,6 +123,11 @@
             <form id="start-game-form" action="javascript:void(0);" method="post">
                 <input type="hidden" name="player_id" value="{{ player_id }}">
                 <button type="submit" class="start-game-btn">ゲーム開始</button>
+            </form>
+        </div>
+        <div class="text-end">
+            <form id="end-game-form" action="/api/db_reset" method="post">
+                <button type="submit" id="end-game-button" class="admin-controls">dbリセット</button>
             </form>
         </div>
         {% endif %}
@@ -189,6 +213,36 @@
                 });
             }
         });
+
+        // 管理者のみ表示されるゲーム終了ボタン
+        const endGameForm = document.getElementById('end-game-form');
+        console.log("player_name:", "{{ player_name }}");
+        console.log("admin_name:", "{{ admin_name }}");
+        if (endGameForm) {
+            endGameForm.addEventListener('submit', event => {
+                event.preventDefault();
+                fetch('/api/db_reset', { method: 'POST' })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('dbをリセットしました。');
+                            // 必要に応じて他の処理を追加
+                        } else {
+                            alert('dbのリセットに失敗しました。');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('dbのリセットに失敗しました。');
+                    });
+            });
+        }
     </script>
 </body>
+
 </html>

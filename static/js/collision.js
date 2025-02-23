@@ -34,19 +34,43 @@ const personWalk = () => {
         if (personX > 0) personX -= 10;
     }
 }
+let isPlayingGetStarSound = false;
+let isPlayingCollisionSound = false;
+
+// スターを取った瞬間に音を再生する関数
+function playGetStarSound() {
+    if (!isPlayingGetStarSound) {
+        isPlayingGetStarSound = true;
+        getStarSound.play();
+        getStarSound.onended = () => {
+            isPlayingGetStarSound = false;
+        };
+    }
+}
+
+// 敵と衝突した瞬間に音を再生する関数
+function playCollisionSound() {
+    if (!isPlayingCollisionSound) {
+        isPlayingCollisionSound = true;
+        collisionSound.play();
+        collisionSound.onended = () => {
+            isPlayingCollisionSound = false;
+        };
+    }
+}
 
 // 衝突判定
 const checkCollision = () => {
     for (let e of enemies) {
         if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
             if (e.type === "star") {
-                stopBgm();
-                playBgm(1);
+                playGetStarSound();
                 starTimer = STAR_TIME;
                 enemies = enemies.filter(enemy => enemy !== e);
                 break;
             } else {
                 if (invincibleTimer > 0 || starTimer > 0) return;
+                playCollisionSound();
                 isCrying = true;
                 cryTimer = 0;
                 invincibleTimer = INVINCIBLE_TIME;

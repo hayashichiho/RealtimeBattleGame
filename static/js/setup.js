@@ -1,3 +1,6 @@
+let getStarSound;
+let collisionSound;
+
 function setup() {
     const urlParams = new URLSearchParams(window.location.search); // URLパラメータを取得
     playerId = urlParams.get('player_id'); // プレイヤーIDを取得
@@ -15,8 +18,9 @@ function setup() {
     loadImg(9, "static/images/mgirl3_white.png");
     loadImg(10, "static/images/star.png"); // 無敵時の画像
 
-    loadSound(0, "static/sounds/walk.mp3"); // 通常時の音楽
-    loadSound(1, "static/sounds/star.mp3"); // 無敵状態の音楽
+    // 音声ファイルを事前に読み込む
+    getStarSound = new Audio('static/sounds/getstar.mp3');
+    collisionSound = new Audio('static/sounds/collision.mp3');
 
     // 最初のタイミングで画面下部に必要な敵行を生成
     updateEnemies();

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>ランキング</title>
@@ -26,6 +27,7 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
+            position: relative;
         }
 
         .table-custom {
@@ -84,7 +86,9 @@
 <body>
     <div class="container">
         <div class="ranking-container">
-            <h1 class="ranking-title text-center display-4">ランキング</h1>
+            <h1 class="ranking-title text-center display-4">
+                ランキング
+            </h1>
             <div class="table-responsive">
                 <table class="table table-custom table-hover mb-0">
                     <thead>
@@ -117,7 +121,7 @@
                     rankingTable.innerHTML = '';
                     data.forEach((player, index) => {
                         const row = document.createElement('tr');
-                        
+
                         // 順位セルの作成とメダルの追加
                         const rankCell = document.createElement('td');
                         rankCell.className = 'rank-number';
@@ -152,9 +156,12 @@
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', updateRanking);
-        // 5秒ごとにランキングを更新
-        setInterval(updateRanking, 5000);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateRanking();
+            // 5秒ごとにランキングを更新
+            setInterval(updateRanking, 5000);
+        });
     </script>
 </body>
+
 </html>
