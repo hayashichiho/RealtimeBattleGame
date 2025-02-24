@@ -15,8 +15,10 @@ const personWalk = () => {
             } else {
                 drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
             }
+            scrollSpeed = 20;
         } else {
             drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
+            scrollSpeed = 12;
         }
         if (personX < bgWidth - 70) personX += 10;
     } else if (plDir === -1) {
@@ -28,8 +30,10 @@ const personWalk = () => {
             } else {
                 drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
             }
+            scrollSpeed = 20;
         } else {
             drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
+            scrollSpeed = 12;
         }
         if (personX > 0) personX -= 10;
     }

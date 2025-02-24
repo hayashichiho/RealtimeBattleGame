@@ -143,7 +143,8 @@
                         // 距離セルの作成
                         const distanceCell = document.createElement('td');
                         distanceCell.className = 'player-distance';
-                        distanceCell.textContent = `${player.distance}m`;
+                        // 小数点第1位まで表示
+                        distanceCell.textContent = player.distance.toFixed(1) + ' m';
 
                         row.appendChild(rankCell);
                         row.appendChild(nameCell);

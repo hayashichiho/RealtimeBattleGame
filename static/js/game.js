@@ -122,9 +122,6 @@ const gameMain = () => {
 
   if (starTimer > 0) {
     starTimer--;
-    if (starTimer === 0) {
-      playGetStarSound(); // スターを取った瞬間に音を再生
-    }
   }
 
   if (isCrying) {
@@ -132,7 +129,7 @@ const gameMain = () => {
     notChangeField();
     setEnemy();
     drawImg(5 + int(cryTimer / 10) % 2, personX, playerY);
-    if (cryTimer >= 120) {
+    if (cryTimer >= INVINCIBLE_TIME) {
       isCrying = false;
       cryTimer = 0;
     }
@@ -149,7 +146,7 @@ const gameMain = () => {
     } else if (fallDir == -1) {
       drawImgS(5 + int(fallTimer / 10) % 2, personX + (144 / 120) * fallTimer - 20, playerY, fallWidth, fallHeight);
     }
-    if (fallTimer >= 150) {
+    if (fallTimer >= INVINCIBLE_TIME) {
       isFalling = false;
       fallTimer = 0;
       personX = 450;

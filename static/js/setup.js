@@ -24,6 +24,11 @@ function setup() {
     collisionSound = new Audio('static/sounds/collision.mp3');
     fallingSound = new Audio('static/sounds/falling.mp3');
 
+    // 音量の調整
+    getStarSound.volume = 0.1;
+    collisionSound.volume = 0.1;
+    fallingSound.volume = 1.0;
+
     // 最初のタイミングで画面下部に必要な敵行を生成
     updateEnemies();
 }
