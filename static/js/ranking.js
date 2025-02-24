@@ -107,6 +107,22 @@ function showDistanceMap() {
     }
 }
 
+// 上位三人の順位表を表示する関数
+function showTopThree() {
+    // 背景の黒い矩形を描画
+    fRect(530, 80, 400, 160, "black");
+
+    // 上位三人のプレイヤーを取得
+    const topThree = playerDistances.slice(0, 3);
+
+    // 上位三人のプレイヤー名と距離を表示
+    topThree.forEach((player, index) => {
+        const formattedDistance = player.distance.toFixed(1);
+        const text = `${index+1}位 ${player.name}: ${formattedDistance}m`;
+        fText(text, 730, 110 + 80 * index, 40, "white");
+    });
+}
+
 // 順位を表示する関数
 function showRankingDisplay() {
     // 背景の黒い矩形を描画

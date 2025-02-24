@@ -164,6 +164,7 @@ const gameMain = () => {
   // UI表示を更新
   showDistance();
   showTime();
+  showTopThree();
   showRankingDisplay();
   showDistanceMap();
 }
