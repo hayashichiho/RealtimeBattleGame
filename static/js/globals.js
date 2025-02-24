@@ -34,8 +34,8 @@ let starTimer = 0;        // 無敵アイテム取得時の無敵時間
 
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
-const INVINCIBLE_TIME = 50;   // 無敵フレーム数(衝突時)
-const STAR_TIME = 240;        // アイテム取得時の無敵時間
+const INVINCIBLE_TIME = 70;   // 無敵フレーム数(衝突時)
+const STAR_TIME = 80;        // アイテム取得時の無敵時間
 const MAX_FRAME = 30 * 60 * 0.5; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）
