@@ -34,7 +34,7 @@ var CWIDTH = 800;//幅
 var CHEIGHT = 600;//高さ
 
 //フレームレート
-var FPS = 20;//１秒間に何回処理を行うか ( frames per second )
+var FPS = 30;//１秒間に何回処理を行うか ( frames per second )
 
 //ローカルストレージ
 var LS_KEYNAME = "SAVEDATA";//keyName 任意に変更可

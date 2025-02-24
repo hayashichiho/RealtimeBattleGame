@@ -24,6 +24,7 @@ function setup() {
     collisionSound = new Audio('static/sounds/collision.mp3');
     fallingSound = new Audio('static/sounds/falling.mp3');
 
+    // 音量の調整
     getStarSound.volume = 0.1;
     collisionSound.volume = 0.1;
     fallingSound.volume = 1.0;

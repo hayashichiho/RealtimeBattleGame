@@ -1,45 +1,41 @@
 // 歩行アニメーション
 const personWalk = () => {
-    plAni++; // アニメーションカウンタ
-    if (tapC > 0 && tapCooldown <= 0) { // タップされたら
+    plAni++;
+    if (tapC > 0 && tapCooldown <= 0) {
         plDir *= -1;
         tapCooldown = TAP_COOLDOWN_TIME;
     }
 
-    if (plDir === 1) { // 右向き
+    if (plDir === 1) {
         if (starTimer > 0) {
-            if (starTimer < 30) {
+            if (starTimer < 60) {
                 if (tmr % 10 < 8) {
                     drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
                 }
             } else {
                 drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
             }
-            if (personX < bgWidth - 70) personX += 25;
             scrollSpeed = 20;
         } else {
             drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
-            if (personX < bgWidth - 70) personX += 15;
             scrollSpeed = 12;
         }
-
-    } else if (plDir === -1) { // 左向き
+        if (personX < bgWidth - 70) personX += 10;
+    } else if (plDir === -1) {
         if (starTimer > 0) {
-            if (starTimer < 30) {
+            if (starTimer < 60) {
                 if (tmr % 20 < 10) {
                     drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
                 }
             } else {
                 drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
             }
-            if (personX > 0) personX -= 25;
             scrollSpeed = 20;
         } else {
             drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
-            if (personX > 0) personX -= 15;
             scrollSpeed = 12;
         }
-
+        if (personX > 0) personX -= 10;
     }
 }
 let isPlayingGetStarSound = false;
@@ -73,7 +69,6 @@ function playFallingSound() {
     if (!isPlayingFallingSound) {
         isPlayingFallingSound = true;
         fallingSound.play();
-        console.log("fallingSound played");
         fallingSound.onended = () => {
             isPlayingFallingSound = false;
         };
@@ -93,6 +88,8 @@ const checkCollision = () => {
                 if (invincibleTimer > 0 || starTimer > 0) return;
                 playCollisionSound();
                 isCrying = true;
+                cryTimer = 0;
+                invincibleTimer = INVINCIBLE_TIME;
                 break;
             }
         }
