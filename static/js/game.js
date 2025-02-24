@@ -21,63 +21,75 @@ function endGame() {
 
 document.addEventListener('DOMContentLoaded', function () {
   let gameStarted = false;
+  let lastServerTime = null;
+  let timeOffset = 0;
 
-  // ゲーム状態を定期的にチェック
-  function checkGameStatus() {
-    console.log("checkGameStatus called");
-    fetch('/api/game_status')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("game_status response:", data);
-        if (data.game_started && !gameStarted) {
-          gameStarted = true;
-          fetch('/api/game_times')
-            .then(response => {
-              if (!response.ok) {
-                throw new Error('Network response was not ok');
-              }
-              return response.json();
-            })
-            .then(gameTimes => {
-              fetch('/api/current_time')
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                  }
-                  return response.json();
-                })
-                .then(currentTimeData => {
-                  const serverCurrentTime = new Date(currentTimeData.current_time);
-                  const startTime = new Date(gameTimes.start_time);
-                  const startDelay = startTime - serverCurrentTime;
-                  console.log("startDelay:", startDelay);
-                  console.log("startTime:", startTime);
-                  console.log("serverCurrentTime:", serverCurrentTime);
-                  if (startDelay > 0) {
-                    setTimeout(startGame, startDelay);
-                  } else {
-                    startGame();
-                  }
-                })
-                .catch(error => {
-                  console.error('Error fetching current time:', error);
-                });
-            })
-            .catch(error => {
-              console.error('Error fetching game times:', error);
-            });
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching game status:', error);
+  // サーバー時間との同期を行う関数
+  function syncWithServer() {
+    return fetch('/api/current_time')
+      .then(response => response.json())
+      .then(currentTimeData => {
+        const serverTime = new Date(currentTimeData.current_time).getTime();
+        const clientTime = Date.now();
+        timeOffset = serverTime - clientTime;
+        lastServerTime = serverTime;
+        return serverTime;
       });
   }
 
+  // 現在のサーバー時間を取得する関数
+  function getServerTime() {
+    return Date.now() + timeOffset;
+  }
+
+  // ゲーム状態を定期的にチェック
+  function checkGameStatus() {
+    fetch('/api/game_status')
+      .then(response => response.json())
+      .then(data => {
+        if (data.game_started && !gameStarted) {
+          gameStarted = true;
+
+          // 最初にサーバーと時刻を同期
+          syncWithServer()
+            .then(() => {
+              return fetch('/api/game_times');
+            })
+            .then(response => response.json())
+            .then(gameTimes => {
+              const startTime = new Date(gameTimes.start_time).getTime();
+              const currentServerTime = getServerTime();
+              const startDelay = startTime - currentServerTime;
+
+              if (startDelay > 0) {
+                // 高精度タイマーを使用
+                const preciseTimeout = (callback, delay) => {
+                  const start = performance.now();
+                  const check = () => {
+                    const elapsed = performance.now() - start;
+                    if (elapsed >= delay) {
+                      callback();
+                    } else {
+                      requestAnimationFrame(check);
+                    }
+                  };
+                  requestAnimationFrame(check);
+                };
+
+                preciseTimeout(startGame, startDelay);
+              } else {
+                startGame();
+              }
+            });
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  // 定期的なサーバー時間同期
+  setInterval(syncWithServer, 30000); // 30秒ごとに同期
+
+  // ゲーム状態チェックの間隔を調整
   setInterval(checkGameStatus, 1000);
 });
 
