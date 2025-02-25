@@ -1,3 +1,4 @@
+
 let currentRank = 1;
 let totalPlayers = 1;
 let playerDistances = [];  // 全プレイヤーの距離情報
@@ -12,9 +13,6 @@ const ctx = canvas.getContext('2d');
 
 function drawCountdown() {
   if (countdown > 0) {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
     // カウントダウンの秒数を白色で大きく表示
     ctx.fillStyle = 'white';
     ctx.font = 'bold 300px Arial';
