@@ -1,7 +1,30 @@
+
 let currentRank = 1;
 let totalPlayers = 1;
 let playerDistances = [];  // 全プレイヤーの距離情報
 let globalRankingData = null;
+let countdown = 0; // カウントダウンの秒数を保持する変数
+let previousCountdown = 0;
+
+// Canvas要素と描画コンテキストの取得
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+
+function drawCountdown() {
+  if (countdown > 0) {
+    // カウントダウンの秒数を白色で大きく表示
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 300px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (previousCountdown !== countdown) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
+  }
+}
+
 
 function startGame() {
   console.log("startGame called");
@@ -70,15 +93,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (elapsed >= delay) {
                       callback();
                     } else {
+                      countdown = Math.ceil((delay - elapsed) / 1000);
+                      if (countdown !== previousCountdown) {
+                        previousCountdown = countdown;
+                      }
+                      drawCountdown();
                       requestAnimationFrame(check);
                     }
                   };
                   requestAnimationFrame(check);
                 };
-
                 preciseTimeout(startGame, startDelay);
               } else {
                 startGame();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
               }
             });
         }
