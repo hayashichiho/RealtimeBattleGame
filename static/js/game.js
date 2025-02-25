@@ -21,7 +21,7 @@ function drawCountdown() {
     if (previousCountdown !== countdown) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(countdown, 500, canvas.height / 2);
   }
 }
 

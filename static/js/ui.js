@@ -9,6 +9,26 @@ const showTime = () => {
     let restTime = (MAX_FRAME - tmr) / 30;
     fText("残り時間: " + restTime.toFixed(0) + "秒", 720, 50, 50, "black");
     sRect(520, 20, 400, 60, "black");
+
+    // 特定の残り時間でメッセージを表示
+    if ((restTime <= 118 && restTime > 113) ||
+        (restTime <= 60 && restTime > 58) ||
+        (restTime <= 30 && restTime > 28) ||
+        (restTime <= 10 && restTime > 8)) {
+        showSpecialMessage(restTime.toFixed(0));
+    }
+}
+
+// 特定の残り時間でメッセージを表示する関数
+const showSpecialMessage = (restTime) => {
+    const message = `残り${restTime}秒！現在${currentRank}位！`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 透明度のある白い文字
+    ctx.font = 'bold 70px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // メッセージを表示
+    ctx.fillText(message, 500, canvas.height / 2);
 }
 
 // 距離を更新するための関数
