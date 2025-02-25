@@ -11,10 +11,9 @@ const showTime = () => {
     sRect(520, 20, 400, 60, "black");
 
     // 特定の残り時間でメッセージを表示
-    if ((restTime <= 118 && restTime > 113) ||
-        (restTime <= 60 && restTime > 58) ||
-        (restTime <= 30 && restTime > 28) ||
-        (restTime <= 10 && restTime > 8)) {
+    if ((restTime <= 100 && restTime > 107) ||
+        (restTime <= 60 && restTime > 57) ||
+        (restTime <= 30 && restTime > 27)) {
         showSpecialMessage(restTime.toFixed(0));
     }
 }
