@@ -28,7 +28,7 @@ const showSpecialMessage = (restTime) => {
     ctx.textBaseline = 'middle';
 
     // メッセージを表示
-    ctx.fillText(message, 500, canvas.height / 2);
+    ctx.fillText(message, 500, 800);
 }
 
 // 距離を更新するための関数
