@@ -68,10 +68,10 @@ function showDistanceMap() {
     const MAP_HEIGHT = 300;  // マップの高さを300pxに拡大
     const MAP_WIDTH = 40;    // マップの幅を40pxに拡大
     const MARKER_SIZE = 10;  // マーカーサイズを10pxに拡大
-    const X_POSITION = 20;   // X座標の開始位置は維持
+    const X_POSITION = 25;   // X座標の開始位置は維持
 
     // 背景の黒い矩形を描画
-    fRect(X_POSITION - 5, 80, MAP_WIDTH + 10, MAP_HEIGHT + 10, "black");
+    sRect(X_POSITION - 5, 80, MAP_WIDTH + 10, MAP_HEIGHT + 10, "black");
 
     // プレイヤーが存在する場合のみ描画
     if (playerDistances.length > 0) {
@@ -110,7 +110,7 @@ function showDistanceMap() {
 // 上位三人の順位表を表示する関数
 function showTopThree() {
     // 背景の黒い矩形を描画
-    fRect(530, 80, 400, 160, "black");
+    sRect(520, 80, 400, 180, "black");
 
     // 上位三人のプレイヤーを取得
     const topThree = playerDistances.slice(0, 3);
@@ -119,18 +119,18 @@ function showTopThree() {
     topThree.forEach((player, index) => {
         const formattedDistance = player.distance.toFixed(1);
         const text = `${index+1}位 ${player.name}: ${formattedDistance}m`;
-        fText(text, 730, 110 + 80 * index, 40, "white");
+        fText(text, 730, 110 + 60 * index, 40, "black");
     });
 }
 
 // 順位を表示する関数
 function showRankingDisplay() {
     // 背景の黒い矩形を描画
-    fRect(20, 20, 120, 60, "black");
+    sRect(20, 20, 120, 60, "black");
 
     // 順位テキストを描画
     const rankText = `${currentRank}/${totalPlayers}`;
-    fText(rankText, 80, 50, 50, "white");
+    fText(rankText, 80, 50, 50, "black");
 }
 
 function showRanking() {
