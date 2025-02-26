@@ -150,9 +150,6 @@ const gameMain = () => {
   if (starTimer > 0) {
     starTimer--;
   }
-  if (kentimer > 0) {
-    kentimer--;
-  }
 
   if (blockTimer > 0) {
     blockTimer--;
@@ -201,6 +198,7 @@ const gameMain = () => {
   showTopThree();
   showRankingDisplay();
   showDistanceMap();
+  showSlowMessage();
 }
 
 // ==================================================
