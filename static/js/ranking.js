@@ -65,7 +65,7 @@ async function updateDistanceAndRank(playerId, distance) {
 }
 
 function showDistanceMap() {
-    const MAP_HEIGHT = 300;  // マップの高さを300pxに拡大
+    const MAP_HEIGHT = 1000;  // マップの高さを300pxに拡大
     const MAP_WIDTH = 40;    // マップの幅を40pxに拡大
     const MARKER_SIZE = 10;  // マーカーサイズを10pxに拡大
     const X_POSITION = 25;   // X座標の開始位置は維持
@@ -110,7 +110,7 @@ function showDistanceMap() {
 // 上位三人の順位表を表示する関数
 function showTopThree() {
     // 背景の黒い矩形を描画
-    sRect(520, 80, 400, 180, "black");
+    sRect(220, 80, 700, 180, "black");
 
     // 上位三人のプレイヤーを取得
     const topThree = playerDistances.slice(0, 3);
@@ -118,8 +118,8 @@ function showTopThree() {
     // 上位三人のプレイヤー名と距離を表示
     topThree.forEach((player, index) => {
         const formattedDistance = player.distance.toFixed(1);
-        const text = `${index+1}位 ${player.name}: ${formattedDistance}m`;
-        fText(text, 730, 110 + 60 * index, 40, "black");
+        const text = `${index + 1}位 ${player.name}: ${formattedDistance}m`;
+        fText(text, 580, 110 + 60 * index, 40, "black");
     });
 }
 

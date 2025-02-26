@@ -155,11 +155,11 @@
                     <div class="invalid-feedback">
                         名前を入力してください/Please enter your name
                     </div>
-                    <input type="text" class="form-control custom-input" id="playerName" name="name" placeholder="名前を入力"
-                        required>
+                    <input type="text" class="form-control custom-input" id="playerName" name="name" maxlength="10"
+                        placeholder="10文字以内で名前を入力/Enter a name within 10 characters" required>
                 </div>
                 <div class="mb-1 text-center">
-                    <button type="submit" class="btn custom-button w-30 text-white">送信</button>
+                    <button type="submit" class="btn custom-button w-30 text-white">送信/send</button>
                 </div>
             </form>
         </div>
@@ -181,6 +181,10 @@
                 }, false)
             })
         })()
+        const maxlength = 10;
+        if (document.getElementById('playerName').value.length > maxlength) {
+            document.getElementById('playerName').value = document.getElementById('playerName').value.slice(0, maxlength);
+        }
     </script>
 
     <noscript>
