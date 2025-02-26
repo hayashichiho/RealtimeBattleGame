@@ -1,4 +1,5 @@
 // サーバーから減速効果状態を取得する関数
+// サーバーから減速効果状態を取得する関数
 async function updateSlowStatus() {
     try {
         const response = await fetch('/api/check_effects', {
@@ -7,7 +8,11 @@ async function updateSlowStatus() {
             body: JSON.stringify({ player_id: playerId })
         });
         const data = await response.json();
-        isSlow = data.is_slowed; // サーバーが返す is_slowed の値をそのまま利用
+        // サーバーからの slow effect が有効の場合、blockTimer を STAR_TIME にセット
+        if (data.is_slowed) {
+            blockTimer = STAR_TIME;
+        }
+        isSlow = data.is_slowed; // 参考用に保持（必要に応じて）
     } catch (error) {
         console.error('Error checking slow effect:', error);
         isSlow = false;
@@ -15,7 +20,7 @@ async function updateSlowStatus() {
 }
 
 // 定期的にサーバーから効果状態を取得（例：500ms毎）
-setInterval(updateSlowStatus, 500);
+setInterval(updateSlowStatus, 100);
 
 const personWalk = () => {
     plAni++;
@@ -25,7 +30,7 @@ const personWalk = () => {
     }
 
     if (plDir === 1) {
-        if (isSlow) {
+        if (blockTimer > 0) {
             drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
             scrollSpeed = 6; // 減速状態の場合
         } else if (starTimer > 0) {
@@ -43,7 +48,7 @@ const personWalk = () => {
         }
         if (personX < bgWidth - 70) personX += 10;
     } else if (plDir === -1) {
-        if (isSlow) {
+        if (blockTimer > 0) {
             drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
             scrollSpeed = 6; // 減速状態の場合
         } else if (starTimer > 0) {
@@ -129,8 +134,8 @@ async function applyKenEffect() {
 
         const sortedPlayers = players.sort((a, b) => b.distance - a.distance);
         const totalPlayers = sortedPlayers.length;
-        const topPlayerCount = totalPlayers;
-        // const topPlayerCount = Math.ceil(totalPlayers * 1);
+        // const topPlayerCount = totalPlayers;
+        const topPlayerCount = Math.ceil(totalPlayers * 0.5);
         const topPlayers = sortedPlayers.slice(0, topPlayerCount);
 
         const affectedPlayers = topPlayers.map(player => player.player_id);
@@ -145,10 +150,6 @@ async function applyKenEffect() {
             })
         });
 
-        // クライアント側での処理（必要ならブロックタイマーの設定など）
-        topPlayers.forEach(player => {
-            player.blockTimer = STAR_TIME;
-        });
     } catch (error) {
         console.error('Error applying ken effect:', error);
     }
