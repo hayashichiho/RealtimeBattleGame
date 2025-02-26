@@ -37,7 +37,7 @@ let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
 const INVINCIBLE_TIME = 90;   // 無敵フレーム数(衝突時)
 const STAR_TIME = 120;        // アイテム取得時の無敵時間(お邪魔時間もこの時間に設定)
-const MAX_FRAME = 30 * 60 * 0.02; // 2分後に終了
+const MAX_FRAME = 30 * 60 * 1; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）
 const slime_dir = 10;
