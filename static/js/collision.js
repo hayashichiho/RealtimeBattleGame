@@ -1,4 +1,22 @@
-// 歩行アニメーション
+// サーバーから減速効果状態を取得する関数
+async function updateSlowStatus() {
+    try {
+        const response = await fetch('/api/check_effects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: playerId })
+        });
+        const data = await response.json();
+        isSlow = data.is_slowed; // サーバーが返す is_slowed の値をそのまま利用
+    } catch (error) {
+        console.error('Error checking slow effect:', error);
+        isSlow = false;
+    }
+}
+
+// 定期的にサーバーから効果状態を取得（例：500ms毎）
+setInterval(updateSlowStatus, 500);
+
 const personWalk = () => {
     plAni++;
     if (tapC > 0 && tapCooldown <= 0) {
@@ -7,7 +25,10 @@ const personWalk = () => {
     }
 
     if (plDir === 1) {
-        if (starTimer > 0) {
+        if (isSlow) {
+            drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
+            scrollSpeed = 6; // 減速状態の場合
+        } else if (starTimer > 0) {
             if (starTimer < 60) {
                 if (tmr % 10 < 8) {
                     drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
@@ -22,7 +43,10 @@ const personWalk = () => {
         }
         if (personX < bgWidth - 70) personX += 10;
     } else if (plDir === -1) {
-        if (starTimer > 0) {
+        if (isSlow) {
+            drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
+            scrollSpeed = 6; // 減速状態の場合
+        } else if (starTimer > 0) {
             if (starTimer < 60) {
                 if (tmr % 20 < 10) {
                     drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
@@ -37,12 +61,12 @@ const personWalk = () => {
         }
         if (personX > 0) personX -= 10;
     }
-}
+};
+
 let isPlayingGetStarSound = false;
 let isPlayingCollisionSound = false;
 let isPlayingFallingSound = false;
 
-// スターを取った瞬間に音を再生する関数
 function playGetStarSound() {
     if (!isPlayingGetStarSound) {
         isPlayingGetStarSound = true;
@@ -53,7 +77,6 @@ function playGetStarSound() {
     }
 }
 
-// 敵と衝突した瞬間に音を再生する関数
 function playCollisionSound() {
     if (!isPlayingCollisionSound) {
         isPlayingCollisionSound = true;
@@ -64,7 +87,6 @@ function playCollisionSound() {
     }
 }
 
-// 落下した瞬間に音を再生する関数
 function playFallingSound() {
     if (!isPlayingFallingSound) {
         isPlayingFallingSound = true;
@@ -75,13 +97,17 @@ function playFallingSound() {
     }
 }
 
-// 衝突判定
 const checkCollision = () => {
     for (let e of enemies) {
         if (e.y >= 890 && e.y < 910 && Math.abs(personX - e.x) < collisionRange) {
             if (e.type === "star") {
                 playGetStarSound();
                 starTimer = STAR_TIME;
+                enemies = enemies.filter(enemy => enemy !== e);
+                break;
+            } else if (e.type === "ken") {
+                playGetStarSound();
+                applyKenEffect();
                 enemies = enemies.filter(enemy => enemy !== e);
                 break;
             } else {
@@ -94,9 +120,40 @@ const checkCollision = () => {
             }
         }
     }
+};
+
+async function applyKenEffect() {
+    try {
+        const response = await fetch('/api/players');
+        const players = await response.json();
+
+        const sortedPlayers = players.sort((a, b) => b.distance - a.distance);
+        const totalPlayers = sortedPlayers.length;
+        const topPlayerCount = totalPlayers;
+        // const topPlayerCount = Math.ceil(totalPlayers * 1);
+        const topPlayers = sortedPlayers.slice(0, topPlayerCount);
+
+        const affectedPlayers = topPlayers.map(player => player.player_id);
+
+        // 減速効果をサーバーに適用
+        await fetch('/api/apply_slow_effect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                affected_players: affectedPlayers,
+                duration: STAR_TIME // 効果時間
+            })
+        });
+
+        // クライアント側での処理（必要ならブロックタイマーの設定など）
+        topPlayers.forEach(player => {
+            player.blockTimer = STAR_TIME;
+        });
+    } catch (error) {
+        console.error('Error applying ken effect:', error);
+    }
 }
 
-// 落下判定
 const checkFalling = () => {
     if (invincibleTimer > 0) return;
     if (personX < 30 || personX > 850) {
@@ -106,4 +163,4 @@ const checkFalling = () => {
         playFallingSound();
         invincibleTimer = INVINCIBLE_TIME;
     }
-}
+};
