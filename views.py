@@ -17,6 +17,9 @@ from .models import Player, generate_unique_player_id
 game_start_time = None  # ゲーム開始時刻
 lock = threading.Lock()  # ロックオブジェクト
 
+# 減速効果の管理用
+slow_effects = {}  # player_id: (end_time, speed_multiplier)
+
 
 @app.route("/api/game_times", methods=["GET"])
 def get_game_times():
@@ -54,37 +57,6 @@ def get_ranking():
             for player in players
         ]
     )
-
-
-# Flask側に追加するエンドポイント
-@app.route("/api/current_rank", methods=["POST"])
-async def get_current_rank():
-    data = request.get_json()
-    player_id = data.get("player_id")
-
-    async with async_session() as session:
-        async with session.begin():
-            try:
-                # 全プレイヤーを距離でソート
-                result = await session.execute(
-                    select(Player).order_by(Player.distance.desc())
-                )
-                players = result.scalars().all()
-
-                # 現在のプレイヤーの順位を計算
-                total_players = len(players)
-                current_rank = next(
-                    (i + 1 for i, p in enumerate(players) if p.player_id == player_id),
-                    total_players,
-                )
-
-                return jsonify(
-                    {"rank": current_rank, "total_players": total_players}
-                ), 200
-
-            except Exception as e:
-                app.logger.error(f"Error getting rank: {str(e)}")
-                return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/api/update_distance", methods=["POST"])  # 距離を更新する処理
@@ -268,3 +240,90 @@ def get_players():
             for player in players
         ]
     )
+
+@app.route("/api/apply_slow_effect", methods=["POST"])
+async def apply_slow_effect():
+    data = request.get_json()
+    affected_players = data.get("affected_players", [])
+    # デフォルト3秒(3000ミリ秒)として設定（必要に応じて変更してください）
+    duration = data.get("duration", 3000)
+    speed_multiplier = data.get("speed_multiplier", 0.5)
+
+    current_time = datetime.utcnow()
+    end_time = current_time + timedelta(milliseconds=duration)
+
+    async with async_session() as session:
+        try:
+            for player_id in affected_players:
+                result = await session.execute(
+                    select(Player).filter_by(player_id=player_id)
+                )
+                player = result.scalars().first()
+                if player:
+                    # slow_effects の更新はロックで保護
+                    with lock:
+                        slow_effects[player_id] = (end_time, speed_multiplier)
+            await session.commit()
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            await session.rollback()
+            return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/check_effects", methods=["POST"])
+async def check_effects():
+    data = request.get_json()
+    player_id = data.get("player_id")
+    current_time = datetime.utcnow()
+
+    # slow_effects への参照もロックで保護
+    with lock:
+        if player_id in slow_effects:
+            end_time, speed_multiplier = slow_effects[player_id]
+            if current_time < end_time:
+                remaining_time = (end_time - current_time).total_seconds()
+                return jsonify({
+                    "is_slowed": True,
+                    "speed_multiplier": speed_multiplier,
+                    "remaining_time": remaining_time,
+                })
+            else:
+                # 効果の期限が切れた場合は削除
+                del slow_effects[player_id]
+
+    return jsonify({"is_slowed": False, "speed_multiplier": 1.0})
+
+
+# この関数だけを残す（GETメソッドのバージョン）
+@app.route("/api/current_rank", methods=["GET"])
+async def get_current_rank():
+    player_id = request.args.get("player_id")
+
+    async with async_session() as session:
+        try:
+            # 全プレイヤーを距離でソート
+            result = await session.execute(
+                select(Player).order_by(Player.distance.desc())
+            )
+            players = result.scalars().all()
+
+            total_players = len(players)
+            # プレイヤーの順位を特定
+            current_rank = next(
+                (i + 1 for i, p in enumerate(players) if p.player_id == player_id),
+                total_players,
+            )
+
+            return jsonify(
+                {
+                    "rank": current_rank,
+                    "total_players": total_players,
+                    "top_players": [
+                        {"id": p.player_id, "name": p.name, "distance": p.distance}
+                        for p in players[:3]  # 上位3名の情報も返す
+                    ],
+                }
+            )
+
+        except Exception as e:
+            app.logger.error(f"Error getting rank: {str(e)}")
+            return jsonify({"status": "error", "message": str(e)}), 500
