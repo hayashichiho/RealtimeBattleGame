@@ -31,11 +31,13 @@ let cryTimer = 0;         // 泣く時間カウント
 let fallTimer = 0;        // 落ちる時間カウント
 let invincibleTimer = 0;  // 衝突直後の無敵時間
 let starTimer = 0;        // 無敵アイテム取得時の無敵時間
+let kentimer = 0;         // 剣アイテム取得時の時間
 
 let tapCooldown = 0;
 const TAP_COOLDOWN_TIME = 8;  // タップクールダウン
 const INVINCIBLE_TIME = 90;   // 無敵フレーム数(衝突時)
 const STAR_TIME = 120;        // アイテム取得時の無敵時間
+const KEN_TIME = 120;         // 剣アイテム取得時の時間
 const MAX_FRAME = 30 * 60 * 2; // 2分後に終了
 
 // 敵用スプライト番号（スライム：下から1番目、ゴースト：2番目、スケルトン：3番目）

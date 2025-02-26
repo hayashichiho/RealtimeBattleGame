@@ -151,6 +151,9 @@ const gameMain = () => {
   if (starTimer > 0) {
     starTimer--;
   }
+  if (kentimer > 0) {
+    kentimer--;
+  }
 
   if (isCrying) {
     cryTimer++;

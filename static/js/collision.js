@@ -16,6 +16,8 @@ const personWalk = () => {
                 drawImg(7 + MG_ANIME[plAni % 8], personX, playerY);
             }
             scrollSpeed = 20;
+        } else if (kentimer > 0) {
+            scrollSpeed = 3;
         } else {
             drawImg(1 + MG_ANIME[plAni % 8], personX, playerY);
             scrollSpeed = 12;
@@ -31,6 +33,8 @@ const personWalk = () => {
                 drawImgLR(7 + MG_ANIME[plAni % 8], personX, playerY, -1);
             }
             scrollSpeed = 20;
+        } else if (kentimer > 0) {
+            scrollSpeed = 3;
         } else {
             drawImgLR(1 + MG_ANIME[plAni % 8], personX, playerY, -1);
             scrollSpeed = 12;
