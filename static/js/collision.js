@@ -84,6 +84,9 @@ const checkCollision = () => {
                 starTimer = STAR_TIME;
                 enemies = enemies.filter(enemy => enemy !== e);
                 break;
+            } else if (e.type === "ken") {
+                attack();
+                break;
             } else {
                 if (invincibleTimer > 0 || starTimer > 0) return;
                 playCollisionSound();

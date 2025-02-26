@@ -126,6 +126,9 @@ function spawnEnemyRow(rowY, stage) {
             }
         }
     }
+    if (rnd(100) < 90) {
+        rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
+    }
     return rowEnemies;
 }
 
@@ -151,6 +154,8 @@ const setEnemy = () => {
                 drawImgTS(4, sx, sy, 72, 72, e.x, e.y, 100, 100);
             } else if (e.type === "star") {
                 drawImg(10, e.x, e.y);
+            } else if (e.type === "ken") {
+                drawImg(11, e.x, e.y);
             }
         }
     });

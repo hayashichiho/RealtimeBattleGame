@@ -18,6 +18,7 @@ function setup() {
     loadImg(8, "static/images/mgirl2_white.png");
     loadImg(9, "static/images/mgirl3_white.png");
     loadImg(10, "static/images/star.png"); // 無敵時の画像
+    loadImg(11, "static/images/ken.png"); // 剣の画像
 
     // 音声ファイルを事前に読み込む
     getStarSound = new Audio('static/sounds/getstar.mp3');
