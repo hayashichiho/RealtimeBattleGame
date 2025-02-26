@@ -1,4 +1,3 @@
-
 let currentRank = 1;
 let totalPlayers = 1;
 let playerDistances = [];  // 全プレイヤーの距離情報
@@ -153,6 +152,10 @@ const gameMain = () => {
   }
   if (kentimer > 0) {
     kentimer--;
+  }
+
+  if (blockTimer > 0) {
+    blockTimer--;
   }
 
   if (isCrying) {
