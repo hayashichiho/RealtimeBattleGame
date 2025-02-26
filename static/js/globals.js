@@ -48,4 +48,4 @@ const skelton_dir = 13;
 let enemies = [];
 
 let isEnd = false;
-let isSlow = false;
+

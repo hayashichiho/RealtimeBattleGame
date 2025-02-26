@@ -1,5 +1,4 @@
 // サーバーから減速効果状態を取得する関数
-// サーバーから減速効果状態を取得する関数
 async function updateSlowStatus() {
     try {
         const response = await fetch('/api/check_effects', {
@@ -12,10 +11,8 @@ async function updateSlowStatus() {
         if (data.is_slowed) {
             blockTimer = STAR_TIME;
         }
-        isSlow = data.is_slowed; // 参考用に保持（必要に応じて）
     } catch (error) {
         console.error('Error checking slow effect:', error);
-        isSlow = false;
     }
 }
 
