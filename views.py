@@ -188,7 +188,7 @@ def wait():
 @app.route("/start_game", methods=["POST"])
 def start_game():
     global game_start_time
-    game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
+    game_start_time = datetime.utcnow() + timedelta(seconds=10)  # 10秒後にゲーム開始
     Player.query.update({Player.game_started: True})
     db.session.commit()
     return jsonify(
@@ -241,6 +241,7 @@ def get_players():
         ]
     )
 
+
 @app.route("/api/apply_slow_effect", methods=["POST"])
 async def apply_slow_effect():
     data = request.get_json()
@@ -269,6 +270,7 @@ async def apply_slow_effect():
             await session.rollback()
             return jsonify({"status": "error", "message": str(e)}), 500
 
+
 @app.route("/api/check_effects", methods=["POST"])
 async def check_effects():
     data = request.get_json()
@@ -281,11 +283,13 @@ async def check_effects():
             end_time, speed_multiplier = slow_effects[player_id]
             if current_time < end_time:
                 remaining_time = (end_time - current_time).total_seconds()
-                return jsonify({
-                    "is_slowed": True,
-                    "speed_multiplier": speed_multiplier,
-                    "remaining_time": remaining_time,
-                })
+                return jsonify(
+                    {
+                        "is_slowed": True,
+                        "speed_multiplier": speed_multiplier,
+                        "remaining_time": remaining_time,
+                    }
+                )
             else:
                 # 効果の期限が切れた場合は削除
                 del slow_effects[player_id]

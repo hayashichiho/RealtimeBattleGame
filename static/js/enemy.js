@@ -126,7 +126,7 @@ function spawnEnemyRow(rowY, stage) {
             }
         }
     }
-    if (rnd(100) < 90) {
+    if (rnd(100) < 30) {
         rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
     }
     return rowEnemies;
