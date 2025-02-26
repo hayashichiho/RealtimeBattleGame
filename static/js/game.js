@@ -198,6 +198,7 @@ const gameMain = () => {
   showTopThree();
   showRankingDisplay();
   showDistanceMap();
+  showSlowMessage();
 }
 
 // ==================================================

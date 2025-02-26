@@ -11,7 +11,7 @@ const showTime = () => {
     sRect(520, 20, 400, 60, "black");
 
     // 特定の残り時間でメッセージを表示
-    if ((restTime <= 100 && restTime > 107) ||
+    if ((restTime <= 100 && restTime > 97) ||
         (restTime <= 60 && restTime > 57) ||
         (restTime <= 30 && restTime > 27)) {
         showSpecialMessage(restTime.toFixed(0));
@@ -42,5 +42,16 @@ async function updateDistance(playerId, distance) {
         });
     } catch (error) {
         console.error('Error updating distance:', error);
+    }
+}
+
+// 減速を知らせるメッセージ
+const showSlowMessage = () => {
+    if (blockTimer > 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 透明度のある白い文字
+        ctx.font = 'bold 70px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('減速中...', 480, 400);
     }
 }
