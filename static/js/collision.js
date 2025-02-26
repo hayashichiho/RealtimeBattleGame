@@ -149,6 +149,7 @@ async function applyKenEffect() {
                 duration: STAR_TIME // 効果時間
             })
         });
+
     } catch (error) {
         console.error('Error applying ken effect:', error);
     }
