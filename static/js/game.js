@@ -142,8 +142,8 @@ function mainloop() {
 
 
 const gameMain = () => {
-  console.log("gameMain called");
-  console.log(`personX: ${personX}, distance: ${distance}, tmr: ${tmr}`);
+  // console.log("gameMain called");
+  // console.log(`personX: ${personX}, distance: ${distance}, tmr: ${tmr}`);
   tapCooldown = Math.max(0, tapCooldown - 1);
   if (invincibleTimer > 0) invincibleTimer--;
 
