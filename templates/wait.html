@@ -95,6 +95,36 @@
             transform: translateY(-2px);
         }
 
+        .rules-card {
+            background-color: white;
+            border-radius: 15px;
+            border: 2px solid #0c9a34;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .rules-content {
+            padding: 1rem 0;
+        }
+
+        .rules-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .rules-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .rules-list li:before {
+            content: "•";
+            color: #0c9a34;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
 
         @media (max-width: 576px) {
             .wait-container {
@@ -113,6 +143,45 @@
                 参加人数: <span id="player-count" class="fw-bold">0</span>人
             </div>
         </div>
+
+        <div class="rules-card">
+            <h2 class="h4 text-center mb-3">ゲームルール / Game Rules</h2>
+            <ul class="nav nav-tabs" id="rulesTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="japanese-tab" data-bs-toggle="tab" data-bs-target="#japanese"
+                        type="button" role="tab" aria-controls="japanese" aria-selected="true">日本語</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="english-tab" data-bs-toggle="tab" data-bs-target="#english"
+                        type="button" role="tab" aria-controls="english" aria-selected="false">English</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="rulesTabContent">
+                <div class="tab-pane fade show active rules-content" id="japanese" role="tabpanel"
+                    aria-labelledby="japanese-tab">
+                    <h4 class="mb-3">2分間で一番進めるのは誰だ！</h4>
+                    <ul class="rules-list">
+                        <li>画面タップで進行方向を切り替え</li>
+                        <li>障害物に当たると3秒間待機</li>
+                        <li>両側の川に落ちたら5秒間待機，真ん中から復帰</li>
+                        <li>スターを取ったら、4秒間無敵 & speedアップ!!</li>
+                        <li>剣を取ったら、○○</li>
+                    </ul>
+                </div>
+                <div class="tab-pane fade rules-content" id="english" role="tabpanel" aria-labelledby="english-tab">
+                    <h4 class="mb-3">Who can go the furthest in 2 minutes?!</h4>
+                    <ul class="rules-list">
+                        <li>Tap the screen to change direction</li>
+                        <li>Hit an obstacle: Wait 3 seconds</li>
+                        <li>Fall into the river: Wait 5 seconds and restart from center</li>
+                        <li>Collect a star: 4 seconds of invincibility & speed up!!</li>
+                        <li>Collect a sword: ○○</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <h2 class="h5 text-center mb-3">参加プレイヤー:</h2>
         <ul id="player-list" class="player-list">
             <!-- プレイヤーリストはJavaScriptで動的に追加 -->
