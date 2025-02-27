@@ -188,7 +188,7 @@ def wait():
 @app.route("/start_game", methods=["POST"])
 def start_game():
     global game_start_time
-    game_start_time = datetime.utcnow() + timedelta(seconds=5)  # 5秒後にゲーム開始
+    game_start_time = datetime.utcnow() + timedelta(seconds=10)  # 10秒後にゲーム開始
     Player.query.update({Player.game_started: True})
     db.session.commit()
     return jsonify(
@@ -240,6 +240,7 @@ def get_players():
             for player in players
         ]
     )
+
 
 @app.route("/api/apply_slow_effect", methods=["POST"])
 async def apply_slow_effect():
