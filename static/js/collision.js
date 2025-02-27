@@ -1,4 +1,5 @@
-// サーバーから減速効果状態を取得する関数
+let slowCausedBy = []; // 減速を適用したプレイヤーのリスト
+
 // サーバーから減速効果状態を取得する関数
 async function updateSlowStatus() {
     try {
@@ -8,19 +9,40 @@ async function updateSlowStatus() {
             body: JSON.stringify({ player_id: playerId })
         });
         const data = await response.json();
+        
         // サーバーからの slow effect が有効の場合、blockTimer を STAR_TIME にセット
         if (data.is_slowed) {
+            console.log('Slow effect data:', data);
             blockTimer = STAR_TIME;
+            slowCausedBy = Array.isArray(data.caused_by) ? data.caused_by : []; // 減速を適用したプレイヤーのリストを取得 // 減速を適用したプレイヤーのリストを取得
         }
-        isSlow = data.is_slowed; // 参考用に保持（必要に応じて）
     } catch (error) {
         console.error('Error checking slow effect:', error);
-        isSlow = false;
     }
 }
 
 // 定期的にサーバーから効果状態を取得（例：500ms毎）
 setInterval(updateSlowStatus, 100);
+
+// 減速を知らせるメッセージ
+const showSlowMessage = () => {
+    if (blockTimer > 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // 透明度のある白
+        ctx.font = 'bold 50px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // 減速メッセージ
+        ctx.fillText('減速中...', 480, 350);
+
+        // 誰からの減速かを表示
+        if (slowCausedBy) {
+            let causedByText = `お邪魔 By ${slowCausedBy.join(', ')}`;
+            ctx.font = 'bold 30px Arial';
+            ctx.fillText(causedByText, 480, 450);
+        }
+    }
+}
 
 const personWalk = () => {
     plAni++;
@@ -146,7 +168,8 @@ async function applyKenEffect() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 affected_players: affectedPlayers,
-                duration: STAR_TIME // 効果時間
+                duration: STAR_TIME, // 効果時間
+                caused_by: playerId
             })
         });
 

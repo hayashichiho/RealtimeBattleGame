@@ -246,7 +246,7 @@ def get_players():
 async def apply_slow_effect():
     data = request.get_json()
     affected_players = data.get("affected_players", [])
-    # デフォルト3秒(3000ミリ秒)として設定（必要に応じて変更してください）
+    caused_by = data.get("caused_by")  # 妨害を仕掛けたプレイヤーID
     duration = data.get("duration", 3000)
     speed_multiplier = data.get("speed_multiplier", 0.5)
 
@@ -261,9 +261,18 @@ async def apply_slow_effect():
                 )
                 player = result.scalars().first()
                 if player:
-                    # slow_effects の更新はロックで保護
                     with lock:
-                        slow_effects[player_id] = (end_time, speed_multiplier)
+                        # `caused_by` をリストとして格納（複数のプレイヤーから減速を受ける可能性あり）
+                        if player_id in slow_effects:
+                            existing_end_time, existing_speed, existing_caused_by = slow_effects[player_id]
+                            slow_effects[player_id] = (
+                                max(end_time, existing_end_time),  # 長い方の時間を採用
+                                min(speed_multiplier, existing_speed),  # より遅い方を採用
+                                list(set(existing_caused_by + [caused_by]))  # 妨害者を追加
+                            )
+                        else:
+                            slow_effects[player_id] = (end_time, speed_multiplier, [caused_by])
+
             await session.commit()
             return jsonify({"status": "success"}), 200
         except Exception as e:
@@ -277,25 +286,30 @@ async def check_effects():
     player_id = data.get("player_id")
     current_time = datetime.utcnow()
 
-    # slow_effects への参照もロックで保護
     with lock:
         if player_id in slow_effects:
-            end_time, speed_multiplier = slow_effects[player_id]
+            end_time, speed_multiplier, caused_by_ids = slow_effects[player_id]
             if current_time < end_time:
                 remaining_time = (end_time - current_time).total_seconds()
-                return jsonify(
-                    {
-                        "is_slowed": True,
-                        "speed_multiplier": speed_multiplier,
-                        "remaining_time": remaining_time,
-                    }
-                )
+
+                async with async_session() as session:
+                    # caused_by のプレイヤー名を取得
+                    result = await session.execute(
+                        select(Player.player_id, Player.name).where(Player.player_id.in_(caused_by_ids))
+                    )
+                    players = result.fetchall()
+                    caused_by_names = [player[1] for player in players]  # 名前だけリスト化
+
+                return jsonify({
+                    "is_slowed": True,
+                    "speed_multiplier": speed_multiplier,
+                    "remaining_time": remaining_time,
+                    "caused_by": caused_by_names  # プレイヤー名を返す
+                })
             else:
-                # 効果の期限が切れた場合は削除
                 del slow_effects[player_id]
 
-    return jsonify({"is_slowed": False, "speed_multiplier": 1.0})
-
+    return jsonify({"is_slowed": False, "speed_multiplier": 1.0, "caused_by": []})
 
 # この関数だけを残す（GETメソッドのバージョン）
 @app.route("/api/current_rank", methods=["GET"])

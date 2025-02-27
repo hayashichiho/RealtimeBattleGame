@@ -45,13 +45,3 @@ async function updateDistance(playerId, distance) {
     }
 }
 
-// 減速を知らせるメッセージ
-const showSlowMessage = () => {
-    if (blockTimer > 0) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 透明度のある白い文字
-        ctx.font = 'bold 70px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('減速中...', 480, 400);
-    }
-}

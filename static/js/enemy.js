@@ -107,7 +107,7 @@ function spawnEnemyRow(rowY, stage) {
             rowEnemies.push({ type: "skelton", x: rnd(bgWidth - 72), y: rowY });
         }
     }
-    if (tmr > 60 * 30) { // stageは関係なく一分後にアイテムが出現するようにする
+    if (tmr > 30 * 30) { // stageは関係なく30秒後に無敵アイテムが出現するようにする
         if (currentRank * 10 < totalPlayers) { // 下位10％
             if (rnd(100) < 20) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
@@ -121,13 +121,25 @@ function spawnEnemyRow(rowY, stage) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
         } else { // それ以外
-            if (rnd(100) < 10) { // 10%の確率に修正
+            if (rnd(100) < 1) { // 1%の確率に修正
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
         }
     }
-    if (rnd(100) < 30) {
-        rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
+    if (tmr > 1 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
+        if (currentRank * 10 < totalPlayers) { // 下位10％
+            if (rnd(100) < 20) {
+                rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
+            }
+        } else if (currentRank * 5 < totalPlayers) { // 下位20％
+            if (rnd(100) < 10) {
+                rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
+            }
+        } else if (currentRank * 3 < totalPlayers) { // 下位33％
+            if (rnd(100) < 5) {
+                rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
+            }
+        }
     }
     return rowEnemies;
 }
