@@ -121,12 +121,12 @@ function spawnEnemyRow(rowY, stage) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
         } else { // それ以外
-            if (rnd(100) < 10) { // 10%の確率に修正
+            if (rnd(100) < 1) { // 1%の確率に修正
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
         }
     }
-    if (tmr > 10 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
+    if (tmr > 1 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
         if (currentRank * 10 < totalPlayers) { // 下位10％
             if (rnd(100) < 20) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
