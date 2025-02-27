@@ -1,7 +1,12 @@
-let slowCausedBy = []; // 減速を適用したプレイヤーのリスト
+let slowCausedBy = []; 
+let lastEffectCheck = 0;
 
-// サーバーから減速効果状態を取得する関数
+// サーバーから減速効果状態を取得する関数（ポーリング間隔を調整）
+let isFetching = false;
 async function updateSlowStatus() {
+    if (isFetching) return;
+    isFetching = true;
+
     try {
         const response = await fetch('/api/check_effects', {
             method: 'POST',
@@ -18,29 +23,38 @@ async function updateSlowStatus() {
         }
     } catch (error) {
         console.error('Error checking slow effect:', error);
+    } finally {
+        isFetching = false;
     }
 }
 
-// 定期的にサーバーから効果状態を取得（例：500ms毎）
-setInterval(updateSlowStatus, 100);
+// インターバルを大きくして負荷軽減
+setInterval(updateSlowStatus, 200);
 
-// 減速を知らせるメッセージ
+// 減速を知らせるメッセージ - レンダリング最適化
 const showSlowMessage = () => {
-    if (blockTimer > 0) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // 透明度のある白
-        ctx.font = 'bold 50px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+    if (blockTimer <= 0) return; // 早期リターンで不要な描画を防ぐ
+    
+    // 透明度を計算（点滅効果）
+    const opacity = (Math.sin(tmr * 0.2) * 0.3) + 0.5;
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+    ctx.font = 'bold 50px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-        // 減速メッセージ
-        ctx.fillText('減速中...', 480, 350);
+    // 減速メッセージ
+    ctx.fillText('減速中...', 480, 350);
 
-        // 誰からの減速かを表示
-        if (slowCausedBy) {
-            let causedByText = `お邪魔 By ${slowCausedBy.join(', ')}`;
-            ctx.font = 'bold 30px Arial';
-            ctx.fillText(causedByText, 480, 450);
-        }
+    // 誰からの減速かを表示（上限2名まで表示して処理軽減）
+    if (slowCausedBy && slowCausedBy.length > 0) {
+        const displayNames = slowCausedBy.slice(0, 2);
+        const causedByText = displayNames.length === slowCausedBy.length 
+            ? `お邪魔 By ${displayNames.join(', ')}`
+            : `お邪魔 By ${displayNames.join(', ')} 他`;
+            
+        ctx.font = 'bold 30px Arial';
+        ctx.fillText(causedByText, 480, 450);
     }
 }
 
@@ -149,6 +163,7 @@ const checkCollision = () => {
     }
 };
 
+// 他の関数も最適化
 async function applyKenEffect() {
     try {
         const response = await fetch('/api/players');

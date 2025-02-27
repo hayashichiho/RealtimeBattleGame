@@ -1,4 +1,5 @@
 import threading
+import time
 from datetime import datetime, timedelta
 
 from flask import (
@@ -19,6 +20,11 @@ lock = threading.Lock()  # ロックオブジェクト
 
 # 減速効果の管理用
 slow_effects = {}  # player_id: (end_time, speed_multiplier)
+
+# グローバル変数としてキャッシュを管理
+ranking_cache = {"data": None, "last_update": 0}
+players_cache = {"data": None, "last_update": 0}
+CACHE_TTL = 2  # キャッシュの有効期間（秒）
 
 
 @app.route("/api/game_times", methods=["GET"])
@@ -44,21 +50,132 @@ def game_status():
     return jsonify({"game_started": game_started})
 
 
+# キャッシュ付きランキング取得関数
 @app.route("/api/ranking", methods=["GET"])
 def get_ranking():
+    current_time = time.time()
+
+    # キャッシュが有効期限内なら使用
+    if (
+        ranking_cache["data"]
+        and current_time - ranking_cache["last_update"] < CACHE_TTL
+    ):
+        return jsonify(ranking_cache["data"])
+
+    # キャッシュがないか期限切れの場合は再取得
     players = Player.query.order_by(Player.distance.desc()).all()
-    return jsonify(
-        [
-            {
-                "player_id": player.player_id,
-                "name": player.name,
-                "distance": player.distance,
-            }
-            for player in players
+    result = [
+        {
+            "player_id": player.player_id,
+            "name": player.name,
+            "distance": player.distance,
+        }
+        for player in players
+    ]
+
+    # キャッシュを更新
+    ranking_cache["data"] = result
+    ranking_cache["last_update"] = current_time
+
+    return jsonify(result)
+
+
+# キャッシュ付きプレイヤーリスト取得関数
+@app.route("/api/players", methods=["GET"])
+def get_players():
+    current_time = time.time()
+    limit = request.args.get("limit", default=20, type=int)
+
+    # キャッシュが有効期限内なら使用
+    if (
+        players_cache["data"]
+        and current_time - players_cache["last_update"] < CACHE_TTL
+    ):
+        return jsonify(players_cache["data"][:limit])
+
+    # キャッシュがないか期限切れの場合は再取得
+    players = Player.query.all()
+    result = [
+        {
+            "player_id": player.player_id,
+            "name": player.name,
+            "distance": player.distance,
+            "game_started": player.game_started,
+        }
+        for player in players
+    ]
+
+    # キャッシュを更新
+    players_cache["data"] = result
+    players_cache["last_update"] = current_time
+
+    return jsonify(result[:limit])
+
+
+# バッチ処理API - 複数のデータを一度に取得
+@app.route("/api/batch_data", methods=["GET"])
+async def batch_data():
+    player_id = request.args.get("player_id")
+
+    # 1. ランキングデータ取得（キャッシュから）
+    current_time = time.time()
+    if (
+        not ranking_cache["data"]
+        or current_time - ranking_cache["last_update"] >= CACHE_TTL
+    ):
+        players = Player.query.order_by(Player.distance.desc()).all()
+        ranking_cache["data"] = [
+            {"player_id": p.player_id, "name": p.name, "distance": p.distance}
+            for p in players
         ]
+        ranking_cache["last_update"] = current_time
+
+    # 2. プレイヤーの現在ランク計算
+    player_rank = next(
+        (
+            i + 1
+            for i, p in enumerate(ranking_cache["data"])
+            if p["player_id"] == player_id
+        ),
+        len(ranking_cache["data"]),
     )
 
+    # 3. 効果状態の確認
+    is_slowed = False
+    speed_multiplier = 1.0
+    caused_by = []
 
+    with lock:
+        if player_id in slow_effects:
+            end_time, speed_mult, caused_ids = slow_effects[player_id]
+            if datetime.utcnow() < end_time:
+                is_slowed = True
+                speed_multiplier = speed_mult
+
+                # 名前解決（キャッシュから）
+                caused_by = []
+                for cid in caused_ids:
+                    for p in ranking_cache["data"]:
+                        if p["player_id"] == cid:
+                            caused_by.append(p["name"])
+                            break
+
+    # 4. 結合レスポンス作成
+    response = {
+        "ranking": ranking_cache["data"][:5],  # 上位5人のみ返す
+        "player_rank": player_rank,
+        "total_players": len(ranking_cache["data"]),
+        "effects": {
+            "is_slowed": is_slowed,
+            "speed_multiplier": speed_multiplier,
+            "caused_by": caused_by,
+        },
+    }
+
+    return jsonify(response)
+
+
+# 距離更新API - メモリキャッシュも更新
 @app.route("/api/update_distance", methods=["POST"])  # 距離を更新する処理
 async def update_distance():
     data = request.get_json()  # リクエストのJSONデータを取得
@@ -75,6 +192,11 @@ async def update_distance():
                 if player:
                     player.distance = distance  # 距離を更新
                     await session.commit()  # コミット
+
+                    # キャッシュを無効化（次回取得時に再構築）
+                    ranking_cache["last_update"] = 0
+                    players_cache["last_update"] = 0
+
                     return jsonify({"status": "success"}), 200  # 成功時のレスポンス
                 else:
                     await session.rollback()  # ロールバック
@@ -226,22 +348,6 @@ def register_player():
     ), 201
 
 
-@app.route("/api/players", methods=["GET"])
-def get_players():
-    players = Player.query.all()
-    return jsonify(
-        [
-            {
-                "player_id": player.player_id,
-                "name": player.name,
-                "distance": player.distance,
-                "game_started": player.game_started,
-            }
-            for player in players
-        ]
-    )
-
-
 @app.route("/api/apply_slow_effect", methods=["POST"])
 async def apply_slow_effect():
     data = request.get_json()
@@ -279,7 +385,6 @@ async def apply_slow_effect():
             await session.rollback()
             return jsonify({"status": "error", "message": str(e)}), 500
 
-
 @app.route("/api/check_effects", methods=["POST"])
 async def check_effects():
     data = request.get_json()
@@ -310,6 +415,7 @@ async def check_effects():
                 del slow_effects[player_id]
 
     return jsonify({"is_slowed": False, "speed_multiplier": 1.0, "caused_by": []})
+
 
 # この関数だけを残す（GETメソッドのバージョン）
 @app.route("/api/current_rank", methods=["GET"])

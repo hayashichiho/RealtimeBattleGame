@@ -108,15 +108,15 @@ function spawnEnemyRow(rowY, stage) {
         }
     }
     if (tmr > 30 * 30) { // stageは関係なく30秒後に無敵アイテムが出現するようにする
-        if (currentRank * 10 < totalPlayers) { // 下位10％
+        if (currentRank >= totalPlayers * 0.9) { // 下位10％
             if (rnd(100) < 20) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else if (currentRank * 5 < totalPlayers) { // 下位20％
+        } else if (currentRank >= totalPlayers * 0.75) { // 下位25％
             if (rnd(100) < 10) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else if (currentRank * 2 < totalPlayers) { // 下位50％
+        } else if (currentRank >= totalPlayers * 0.5) { // 下位50％
             if (rnd(100) < 3) {
                 rowEnemies.push({ type: "star", x: rnd2(30, bgWidth - 120), y: rowY });
             }
@@ -126,19 +126,21 @@ function spawnEnemyRow(rowY, stage) {
             }
         }
     }
-    if (tmr > 1 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
-        if (currentRank * 10 < totalPlayers) { // 下位10％
+    if (tmr > 0 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
+        if (currentRank >= totalPlayers * 0.9) { // 下位10％
             if (rnd(100) < 20) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else if (currentRank * 5 < totalPlayers) { // 下位20％
+        } else if (currentRank >= totalPlayers * 0.75) { // 下位25％
             if (rnd(100) < 10) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else if (currentRank * 3 < totalPlayers) { // 下位33％
+        } else if (currentRank >= totalPlayers * 0.5) { // 下位50％
             if (rnd(100) < 5) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
             }
+        } else {
+            rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
         }
     }
     return rowEnemies;
