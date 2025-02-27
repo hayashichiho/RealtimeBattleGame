@@ -139,10 +139,6 @@ function spawnEnemyRow(rowY, stage) {
             if (rnd(100) < 5) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else {
-            if (rnd(100) < 10) {
-                rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
-            }
         }
     }
     return rowEnemies;
