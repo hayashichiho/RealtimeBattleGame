@@ -55,6 +55,8 @@ async function updateDistanceAndRank(playerId, distance) {
             playerDistances = batchData.ranking;
             currentRank = batchData.player_rank;
             totalPlayers = batchData.total_players;
+
+            console.log("全プレイヤー数:", totalPlayers, "現在の順位:", currentRank);
         }
     } catch (error) {
         console.error('Error updating distance and rank:', error);
@@ -121,7 +123,6 @@ function showTopThree() {
         const text = `${index + 1}位 ${player.name}: ${formattedDistance}m`;
         fText(text, 580, 110 + 60 * index, 40, "black");
     });
-    console.log("全プレイヤー数:", totalPlayers, "現在の順位:", currentRank);
 }
 
 // 順位を表示する関数
