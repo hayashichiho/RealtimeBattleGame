@@ -13,14 +13,18 @@ const showTime = () => {
     // 特定の残り時間でメッセージを表示
     if ((restTime <= 100 && restTime > 97) ||
         (restTime <= 60 && restTime > 57) ||
-        (restTime <= 30 && restTime > 27)) {
+        (restTime <= 30 && restTime > 27) ||
+        (restTime <= 120 && restTime > 115)) {
         showSpecialMessage(restTime.toFixed(0));
     }
 }
 
 // 特定の残り時間でメッセージを表示する関数
 const showSpecialMessage = (restTime) => {
-    const message = `残り${restTime}秒！現在${currentRank}位！`;
+    let message = `残り${restTime}秒！現在${currentRank}位！`;
+    if (restTime >= 115) {
+        message = 'タップで方向転換！'
+    }
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 透明度のある白い文字
     ctx.font = 'bold 70px Arial';
     ctx.textAlign = 'center';

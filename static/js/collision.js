@@ -1,4 +1,4 @@
-let slowCausedBy = []; 
+let slowCausedBy = [];
 let lastEffectCheck = 0;
 
 // サーバーから減速効果状態を取得する関数（ポーリング間隔を調整）
@@ -14,7 +14,7 @@ async function updateSlowStatus() {
             body: JSON.stringify({ player_id: playerId })
         });
         const data = await response.json();
-        
+
         // サーバーからの slow effect が有効の場合、blockTimer を STAR_TIME にセット
         if (data.is_slowed) {
             console.log('Slow effect data:', data);
@@ -34,10 +34,10 @@ setInterval(updateSlowStatus, 200);
 // 減速を知らせるメッセージ - レンダリング最適化
 const showSlowMessage = () => {
     if (blockTimer <= 0) return; // 早期リターンで不要な描画を防ぐ
-    
+
     // 透明度を計算（点滅効果）
     const opacity = (Math.sin(tmr * 0.2) * 0.3) + 0.5;
-    
+
     ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
     ctx.font = 'bold 50px Arial';
     ctx.textAlign = 'center';
@@ -49,10 +49,10 @@ const showSlowMessage = () => {
     // 誰からの減速かを表示（上限2名まで表示して処理軽減）
     if (slowCausedBy && slowCausedBy.length > 0) {
         const displayNames = slowCausedBy.slice(0, 2);
-        const causedByText = displayNames.length === slowCausedBy.length 
+        const causedByText = displayNames.length === slowCausedBy.length
             ? `お邪魔 By ${displayNames.join(', ')}`
             : `お邪魔 By ${displayNames.join(', ')} 他`;
-            
+
         ctx.font = 'bold 30px Arial';
         ctx.fillText(causedByText, 480, 450);
     }

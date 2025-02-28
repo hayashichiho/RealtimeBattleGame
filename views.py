@@ -370,20 +370,31 @@ async def apply_slow_effect():
                     with lock:
                         # `caused_by` をリストとして格納（複数のプレイヤーから減速を受ける可能性あり）
                         if player_id in slow_effects:
-                            existing_end_time, existing_speed, existing_caused_by = slow_effects[player_id]
+                            existing_end_time, existing_speed, existing_caused_by = (
+                                slow_effects[player_id]
+                            )
                             slow_effects[player_id] = (
                                 max(end_time, existing_end_time),  # 長い方の時間を採用
-                                min(speed_multiplier, existing_speed),  # より遅い方を採用
-                                list(set(existing_caused_by + [caused_by]))  # 妨害者を追加
+                                min(
+                                    speed_multiplier, existing_speed
+                                ),  # より遅い方を採用
+                                list(
+                                    set(existing_caused_by + [caused_by])
+                                ),  # 妨害者を追加
                             )
                         else:
-                            slow_effects[player_id] = (end_time, speed_multiplier, [caused_by])
+                            slow_effects[player_id] = (
+                                end_time,
+                                speed_multiplier,
+                                [caused_by],
+                            )
 
             await session.commit()
             return jsonify({"status": "success"}), 200
         except Exception as e:
             await session.rollback()
             return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/check_effects", methods=["POST"])
 async def check_effects():
@@ -400,17 +411,23 @@ async def check_effects():
                 async with async_session() as session:
                     # caused_by のプレイヤー名を取得
                     result = await session.execute(
-                        select(Player.player_id, Player.name).where(Player.player_id.in_(caused_by_ids))
+                        select(Player.player_id, Player.name).where(
+                            Player.player_id.in_(caused_by_ids)
+                        )
                     )
                     players = result.fetchall()
-                    caused_by_names = [player[1] for player in players]  # 名前だけリスト化
+                    caused_by_names = [
+                        player[1] for player in players
+                    ]  # 名前だけリスト化
 
-                return jsonify({
-                    "is_slowed": True,
-                    "speed_multiplier": speed_multiplier,
-                    "remaining_time": remaining_time,
-                    "caused_by": caused_by_names  # プレイヤー名を返す
-                })
+                return jsonify(
+                    {
+                        "is_slowed": True,
+                        "speed_multiplier": speed_multiplier,
+                        "remaining_time": remaining_time,
+                        "caused_by": caused_by_names,  # プレイヤー名を返す
+                    }
+                )
             else:
                 del slow_effects[player_id]
 
