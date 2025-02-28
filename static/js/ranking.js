@@ -35,9 +35,9 @@ async function endGameAndShowRanking() {
 let isFetchingRank = false;
 async function updateDistanceAndRank(playerId, distance) {
     if (tmr % 30 !== 0) return; // 更新頻度を半減（30フレームに1回）
-    if(isFetchingRank) return;
+    if (isFetchingRank) return;
     isFetchingRank = true;
-    
+
     try {
         // 距離を更新
         await fetch('/api/update_distance', {
@@ -45,12 +45,12 @@ async function updateDistanceAndRank(playerId, distance) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ player_id: playerId, distance: distance * 0.04 }),
         });
-        
+
         // バッチAPIで一度に複数データを取得
         if (tmr % 60 === 0) { // さらに頻度を下げる（60フレームに1回）
             const batchResponse = await fetch('/api/batch_data?player_id=' + playerId);
             const batchData = await batchResponse.json();
-            
+
             // 順位とプレイヤーリストを更新
             playerDistances = batchData.ranking;
             currentRank = batchData.player_rank;
@@ -121,6 +121,7 @@ function showTopThree() {
         const text = `${index + 1}位 ${player.name}: ${formattedDistance}m`;
         fText(text, 580, 110 + 60 * index, 40, "black");
     });
+    console.log("全プレイヤー数:", totalPlayers, "現在の順位:", currentRank);
 }
 
 // 順位を表示する関数
