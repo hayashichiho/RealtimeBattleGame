@@ -126,7 +126,7 @@ function spawnEnemyRow(rowY, stage) {
             }
         }
     }
-    if (tmr > 0 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
+    if (tmr > 60 * 30) { // stageは関係なく60秒後に妨害アイテムが出現するようにする
         if (currentRank >= totalPlayers * 0.9) { // 下位10％
             if (rnd(100) < 20) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
@@ -139,8 +139,6 @@ function spawnEnemyRow(rowY, stage) {
             if (rnd(100) < 5) {
                 rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
             }
-        } else {
-            rowEnemies.push({ type: "ken", x: rnd2(30, bgWidth - 120), y: rowY });
         }
     }
     return rowEnemies;
