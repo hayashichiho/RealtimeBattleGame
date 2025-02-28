@@ -37,7 +37,6 @@ async function updateDistanceAndRank(playerId, distance) {
 
     try {
         // 距離を更新
-        console.log("距離を更新します:", distance);
         await fetch('/api/update_distance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

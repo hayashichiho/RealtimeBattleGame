@@ -177,6 +177,21 @@ const gameMain = () => {
     } else if (fallDir == -1) {
       drawImgS(5 + int(fallTimer / 10) % 2, personX + (144 / 120) * fallTimer - 20, playerY, fallWidth, fallHeight);
     }
+    if (fallTimer >= (INVINCIBLE_TIME - 20)) {
+      let message = '';
+      if (plDir == 1) {
+        message = '↗';
+      } else {
+        message = '↖';
+      }
+      ctx.fillStyle = 'rgba(255, 255, 255)'; // 透明度のある白い文字
+      ctx.font = 'bold 100px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // メッセージを表示
+      ctx.fillText(message, 480, 1000);
+    }
     if (fallTimer >= INVINCIBLE_TIME) {
       isFalling = false;
       fallTimer = 0;
