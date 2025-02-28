@@ -156,7 +156,7 @@ const checkCollision = () => {
                 playCollisionSound();
                 isCrying = true;
                 cryTimer = 0;
-                invincibleTimer = INVINCIBLE_TIME;
+                invincibleTimer = INVINCIBLE_TIME * 1.1;
                 break;
             }
         }
