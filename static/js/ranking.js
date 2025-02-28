@@ -32,14 +32,12 @@ async function endGameAndShowRanking() {
 }
 
 // 距離と順位を更新する関数 - バッチAPIを使用して最適化
-let isFetchingRank = false;
 async function updateDistanceAndRank(playerId, distance) {
     if (tmr % 30 !== 0) return; // 更新頻度を半減（30フレームに1回）
-    if (isFetchingRank) return;
-    isFetchingRank = true;
 
     try {
         // 距離を更新
+        console.log("距離を更新します:", distance);
         await fetch('/api/update_distance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -47,24 +45,19 @@ async function updateDistanceAndRank(playerId, distance) {
         });
 
         // バッチAPIで一度に複数データを取得
-        if (tmr % 60 === 0) { // さらに頻度を下げる（60フレームに1回）
-            const batchResponse = await fetch('/api/batch_data?player_id=' + playerId);
-            const batchData = await batchResponse.json();
+        const batchResponse = await fetch('/api/batch_data?player_id=' + playerId);
+        const batchData = await batchResponse.json();
 
-            // 順位とプレイヤーリストを更新
-            playerDistances = batchData.ranking;
-            currentRank = batchData.player_rank;
-            totalPlayers = batchData.total_players;
+        // 順位とプレイヤーリストを更新
+        playerDistances = batchData.ranking;
+        currentRank = batchData.player_rank;
+        totalPlayers = batchData.total_players;
 
-            console.log("全プレイヤー数:", totalPlayers, "現在の順位:", currentRank);
-        }
+        console.log("全プレイヤー数:", totalPlayers, "現在の順位:", currentRank);
     } catch (error) {
         console.error('Error updating distance and rank:', error);
-    } finally {
-        isFetchingRank = false;
     }
 }
-
 
 function showDistanceMap() {
     const MAP_HEIGHT = 1000;  // マップの高さを300pxに拡大

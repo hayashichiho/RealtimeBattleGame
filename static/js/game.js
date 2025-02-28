@@ -192,6 +192,7 @@ const gameMain = () => {
   }
 
   updateDistanceAndRank(playerId, distance);// 距離と順位を更新
+
   // UI表示を更新
   showDistance();
   showTime();
