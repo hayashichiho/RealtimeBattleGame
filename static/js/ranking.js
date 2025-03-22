@@ -13,7 +13,7 @@ async function endGameAndShowRanking() {
                 is_final: true
             }),
         });
-
+        /*
         // ゲーム終了を通知
         await fetch('/api/end_game', {
             method: 'POST',
@@ -22,7 +22,7 @@ async function endGameAndShowRanking() {
             },
             body: JSON.stringify({ player_id: playerId }), // プレイヤーIDを送信
         });
-
+        */
         // ランキングを取得して表示
         window.location.href = '/ranking';
 
