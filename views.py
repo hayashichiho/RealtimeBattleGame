@@ -84,7 +84,7 @@ def get_ranking():
 @app.route("/api/players", methods=["GET"])
 def get_players():
     current_time = time.time()
-    limit = request.args.get("limit", default=20, type=int)
+    limit = request.args.get("limit", default=50, type=int)
 
     # キャッシュが有効期限内なら使用
     if (
